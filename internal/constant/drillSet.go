@@ -70,8 +70,8 @@ func init2() {
 				z, _ := strconv.ParseFloat(temp[3], 64)
 				d := entity.Drill{
 					Name: temp[0],
-					X:    (x - OffX) * ScaleXY,
-					Y:    (y - OffY) * ScaleXY,
+					X:    (x + OffX) * ScaleXY,
+					Y:    (y + OffY) * ScaleXY,
 					Z:    z * ScaleZ,
 				}
 

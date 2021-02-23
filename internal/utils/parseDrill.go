@@ -26,14 +26,18 @@ func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
 	log.Println(gridy)
 	blocks := getBlockHeights(drills, constant.ResZ)
 	bx, by := constant.GetBoundary()
-
+	var in, notin int
 	for idx := range gridx {
 		for idy := range gridy {
 			x := gridx[idx]
 			y := gridy[idy]
 			if isInPolygon(bx, by, x, y) {
-				log.Println("in", gridx[idx], gridy[idy])
+				in++
+				log.Println("in", in, gridx[idx], gridy[idy])
 				virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
+			} else {
+				notin++
+				log.Println(notin, "not in", gridx[idx], gridy[idy])
 			}
 		}
 	}
@@ -453,7 +457,7 @@ func getDrillsRecXOY(drills []entity.Drill) (l, r, t, b float64) {
 			t = drill.Y
 		}
 	}
-	log.Println("rec t,b,l,r is: ", t, b, l, r)
+	//log.Println("rec t,b,l,r is: ", t, b, l, r)
 	return
 }
 func explodedHeights(blocks []float64, ceil, floor float64) (heights []float64) {

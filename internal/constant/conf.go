@@ -36,17 +36,17 @@ func play() {
 }
 
 //ResX resolution x
-const ResXY float64 = 1000
+const ResXY float64 = 100
 
 //ResZ resolution z
 //z方向的精度要求，应当小于1/3的最小层厚
 const ResZ float64 = 0.5
 
 //OffX offsetX
-const OffX float64 = 3592727.0
+const OffX float64 = -3592727.0
 
 //OffY offsetY
-const OffY float64 = 499523.0
+const OffY float64 = -499523.0
 
 //ScaleXY scales
 const ScaleXY float64 = 1

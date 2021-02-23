@@ -198,4 +198,20 @@ func TestIsInPolygon(t *testing.T) {
 			t.Error(testx[idx], testy[idx], rst[idx])
 		}
 	}
+
+	x, y := constant.GetBoundary()
+	l, r, top, b := getDrillsRecXOY(constant.DrillSet())
+	gridx, gridy := getGrid(constant.ResXY, constant.ResXY, l, r, top, b)
+	var in, notin int
+	for _, val1 := range gridx {
+		for _, val2 := range gridy {
+			if isInPolygon(x, y, val1, val2) {
+				in++
+			} else {
+				notin++
+			}
+		}
+	}
+	log.Println("in", in, "not in", notin)
+
 }
