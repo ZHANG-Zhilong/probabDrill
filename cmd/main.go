@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"probabDrill-main/internal/constant"
-	"probabDrill-main/internal/utils"
+	"probabDrill/internal/constant"
+	"probabDrill/internal/utils"
 )
 
 func main() {

@@ -2,7 +2,7 @@ package constant
 
 import (
 	"math"
-	"probabDrill-main/internal/entity"
+	"probabDrill/internal/entity"
 	"sort"
 	"sync"
 )

@@ -3,8 +3,8 @@ package utils
 import (
 	"fmt"
 	"log"
-	"probabDrill-main/internal/constant"
-	"probabDrill-main/internal/entity"
+	"probabDrill/internal/constant"
+	"probabDrill/internal/entity"
 	"testing"
 )
 

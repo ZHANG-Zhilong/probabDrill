@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"probabDrill-main/internal/entity"
+	"probabDrill/internal/entity"
 	"strconv"
 	"strings"
 	"sync"

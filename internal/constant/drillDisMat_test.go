@@ -2,7 +2,7 @@ package constant
 
 import (
 	"fmt"
-	"probabDrill-main/internal/entity"
+	"probabDrill/internal/entity"
 	"testing"
 )
 

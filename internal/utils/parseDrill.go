@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"probabDrill-main/internal/constant"
-	"probabDrill-main/internal/entity"
+	"probabDrill/internal/constant"
+	"probabDrill/internal/entity"
 	"sort"
 )
 
