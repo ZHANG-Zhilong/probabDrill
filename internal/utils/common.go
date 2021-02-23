@@ -12,7 +12,7 @@ func DisplayDrills(drills []entity.Drill) {
 	}
 	fmt.Printf("total %d drills.", len(drills))
 }
-func printFloat64s(s []float64) () {
+func PrintFloat64s(s []float64) () {
 	fmt.Print("[")
 	for _, v := range s {
 		if v > 0 {
@@ -23,10 +23,10 @@ func printFloat64s(s []float64) () {
 	}
 	fmt.Print("]\n")
 }
-func hole(vals ...float64) () {
+func Hole(vals ...float64) () {
 	return
 }
-func isInPolygon(x, y []float64, x0, y0 float64) (isIn bool) {
+func IsInPolygon(x, y []float64, x0, y0 float64) (isIn bool) {
 
 	//vert[0], vert[last]
 	var i, j int = 0, len(x) - 1
@@ -49,7 +49,7 @@ func isInPolygon(x, y []float64, x0, y0 float64) (isIn bool) {
 
 	return isIn
 }
-func getGrid(px, py, l, r, t, b float64) (gridx, gridy []float64) {
+func GetGrids(px, py, l, r, t, b float64) (gridx, gridy []float64) {
 	gridx = append(gridx, l)
 	gridy = append(gridy, b)
 	for (l + px) < r {
@@ -64,7 +64,7 @@ func getGrid(px, py, l, r, t, b float64) (gridx, gridy []float64) {
 	gridy = append(gridy, t)
 	return
 }
-func findMaxFloat64s(float64s []float64) (idx int, val float64) {
+func FindMaxFloat64s(float64s []float64) (idx int, val float64) {
 	if len(float64s) < 1 {
 		return 0, 0
 	}

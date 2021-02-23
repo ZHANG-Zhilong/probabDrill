@@ -82,7 +82,7 @@ func (drill Drill) IsValid() (valid bool) {
 	}
 	return true
 }
-func (drill Drill) hasLayer(layer int64) (num int) {
+func (drill Drill) HasLayer(layer int64) (num int) {
 	for _, l := range drill.Layers {
 		if l == layer {
 			num++
@@ -90,7 +90,7 @@ func (drill Drill) hasLayer(layer int64) (num int) {
 	}
 	return num
 }
-func (drill Drill) hasBlock(ceil, floor float64) (has bool) {
+func (drill Drill) HasBlock(ceil, floor float64) (has bool) {
 	if ceil <= floor {
 		return false
 	}

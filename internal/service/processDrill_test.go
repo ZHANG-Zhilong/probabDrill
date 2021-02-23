@@ -1,23 +1,24 @@
-package utils
+package service
 
 import (
 	"fmt"
 	"log"
 	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
+	"probabDrill/internal/utils"
 	"testing"
 )
 
 func TestDisplayDrills(t *testing.T) {
 	drillSet := constant.DrillSet()
-	DisplayDrills(drillSet)
+	utils.DisplayDrills(drillSet)
 }
 func TestStatProbBlockLayer(t *testing.T) {
 	log.SetFlags(log.Lshortfile)
 	drills := constant.DrillSet()
 	blocks := makeBlocks(drills, constant.BlockResZ)
 	for idx := int(1); idx < len(blocks); idx++ {
-		p := statProbBlockLayer(drills, blocks[idx-1], blocks[idx], 2)
+		p := utils.StatProbBlockLayer(drills, blocks[idx-1], blocks[idx], 2)
 		log.Println(p)
 	}
 }
@@ -30,7 +31,7 @@ func TestGetGrid(t *testing.T) {
 		{0.23, 0.4, -1, 1, 1, -1},
 	}
 	for _, test := range tests {
-		x, y := getGrid(test.px, test.py, test.l, test.r, test.t, test.b)
+		x, y := utils.GetGrids(test.px, test.py, test.l, test.r, test.t, test.b)
 		t.Errorf("px %f, py %f, l %f, r %f, t %f, b %f", test.px, test.py, test.l, test.r, test.t, test.b)
 		t.Errorf("gridx, %.2f~%.2f-%.2f,len %d", test.l, test.r, test.px, len(x))
 		t.Errorf("%.2f\n", x)
@@ -56,7 +57,7 @@ func TestGetLayerSeq(t *testing.T) {
 		}
 	}
 	fmt.Println(layers)
-	printFloat64s(heights)
+	utils.PrintFloat64s(heights)
 	drill0.Print()
 }
 func TestExplodeDrill(t *testing.T) {
@@ -102,7 +103,7 @@ func TestStats(t *testing.T) {
 	//var probBlocks = make([]float64, len(blocks), len(blocks))
 	//var probBlockGeneral = make([]float64, len(blocks), len(blocks))
 	for idx := 1; idx < len(blocks); idx++ {
-		probBlockWithWeights[idx] = statProbBlockWithWeight(incidentDrills, blocks[idx-1], blocks[idx])
+		probBlockWithWeights[idx] = utils.StatProbBlockWithWeight(incidentDrills, blocks[idx-1], blocks[idx])
 		//probBlocks[idx] = statProbBlock(incidentDrills, blocks[idx-1], blocks[idx])
 		//probBlockGeneral[idx] = statProbBlock(constant.DrillSet(), blocks[idx-1], blocks[idx])
 	}
@@ -117,8 +118,8 @@ func TestStats(t *testing.T) {
 		var probBlockLayers = make([]float64, constant.StdLen, constant.StdLen)
 		var probLayerBlock2s = make([]float64, constant.StdLen, constant.StdLen)
 		for lidx := int64(1); lidx < constant.StdLen; lidx++ {
-			probLayers[lidx] = statProbLayerWithWeight(incidentDrills, blocks[idx-1], blocks[idx], lidx)
-			probBlockLayers[lidx] = statProbBlockLayer(constant.DrillSet(), blocks[idx-1], blocks[idx], lidx)
+			probLayers[lidx] = utils.StatProbLayerWithWeight(incidentDrills, blocks[idx-1], blocks[idx], lidx)
+			probBlockLayers[lidx] = utils.StatProbBlockLayer(constant.DrillSet(), blocks[idx-1], blocks[idx], lidx)
 			if probBlockWithWeights[idx] >= 0.0000001 {
 				probLayerBlock2s[lidx] = probLayers[lidx] * probBlockLayers[lidx] / probBlockWithWeights[idx]
 			}
@@ -135,8 +136,8 @@ func TestProbLayerAndBlocksWithWeight(t *testing.T) {
 	for idx := 1; idx < len(blocks); idx++ {
 		for layer := int64(1); layer < constant.StdLen; layer++ {
 			ceil, floor := blocks[idx-1], blocks[idx]
-			prob1 := statProbBlockAndLayerWithWeight(incidentDrills, ceil, floor, layer)
-			prob2 := statProbBlockLayer(drills, ceil, floor, layer)
+			prob1 := utils.StatProbBlockAndLayerWithWeight(incidentDrills, ceil, floor, layer)
+			prob2 := utils.StatProbBlockLayer(drills, ceil, floor, layer)
 			log.Printf("%f, %f\n", prob1, prob2)
 		}
 	}
@@ -149,7 +150,7 @@ func TestStatProbBlockWithWeight(t *testing.T) {
 		d.Print()
 	}
 
-	probBlock := statProbBlockWithWeight(incidentDrillSet, blocks[1], blocks[2])
+	probBlock := utils.StatProbBlockWithWeight(incidentDrillSet, blocks[1], blocks[2])
 	fmt.Println(probBlock)
 
 }
@@ -178,12 +179,12 @@ func TestClassicalIdw(t *testing.T) {
 }
 func BenchmarkGetGrid(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		getGrid(1, 1, -5, 5, 5, -5)
+		utils.GetGrids(1, 1, -5, 5, 5, -5)
 	}
 }
 func TestFindMaxValue(t *testing.T) {
 	s := []float64{0, 3, -2}
-	idx, val := findMaxFloat64s(s)
+	idx, val := utils.FindMaxFloat64s(s)
 	fmt.Println(idx, val)
 }
 func TestIsInPolygon(t *testing.T) {
@@ -193,7 +194,7 @@ func TestIsInPolygon(t *testing.T) {
 	testy := []float64{1, 1, 0, 1, 1.5, 1.25, 1.5}
 	rst := []bool{true, true, true, false, false, false, false}
 	for idx, _ := range rst {
-		if rst[idx] != isInPolygon(vertx, verty, testx[idx], testy[idx]) {
+		if rst[idx] != utils.IsInPolygon(vertx, verty, testx[idx], testy[idx]) {
 			t.Error("error")
 			t.Error(testx[idx], testy[idx], rst[idx])
 		}
@@ -201,11 +202,11 @@ func TestIsInPolygon(t *testing.T) {
 
 	x, y := constant.GetBoundary()
 	l, r, top, b := getDrillsRecXOY(constant.DrillSet())
-	gridx, gridy := getGrid(constant.GridXY, constant.GridXY, l, r, top, b)
+	gridx, gridy := utils.GetGrids(constant.GridXY, constant.GridXY, l, r, top, b)
 	var in, notin int
 	for _, val1 := range gridx {
 		for _, val2 := range gridy {
-			if isInPolygon(x, y, val1, val2) {
+			if utils.IsInPolygon(x, y, val1, val2) {
 				in++
 			} else {
 				notin++

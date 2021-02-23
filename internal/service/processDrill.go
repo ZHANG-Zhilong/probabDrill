@@ -1,10 +1,11 @@
-package utils
+package service
 
 import (
 	"log"
 	"math"
 	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
+	"probabDrill/internal/utils"
 	"sort"
 )
 
@@ -14,7 +15,7 @@ func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
 	l, r, t, b := getDrillsRecXOY(drills)
 
 	//grid to interpolate
-	gridx, gridy := getGrid(px, py, l, r, t, b)
+	gridx, gridy := utils.GetGrids(px, py, l, r, t, b)
 	log.Println(gridx)
 	log.Println(gridy)
 	blocks := makeBlocks(drills, constant.BlockResZ)
@@ -24,7 +25,7 @@ func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
 		for idy := range gridy {
 			x := gridx[idx]
 			y := gridy[idy]
-			if isInPolygon(bx, by, x, y) {
+			if utils.IsInPolygon(bx, by, x, y) {
 				in++
 
 				virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
@@ -67,21 +68,21 @@ func generateVirtualDrill(x, y float64, blocks []float64) (virtualDrill entity.D
 		//p(layer|block0)
 		//bidx = 107
 		ceil, floor := blocks[bidx-1], blocks[bidx]
-		var probBlockWithWeight = statProbBlockWithWeight(incidentDrills, ceil, floor)
+		var probBlockWithWeight = utils.StatProbBlockWithWeight(incidentDrills, ceil, floor)
 		var probLayersWithWeight = make([]float64, constant.StdLen, constant.StdLen)
 		var probBlockLayers = make([]float64, constant.StdLen, constant.StdLen)
 		var probLayerBlock2s = make([]float64, constant.StdLen, constant.StdLen)
 
 		for layerIdx := int64(1); layerIdx < constant.StdLen; layerIdx++ { //layer[0] is ground.
 			//layerIdx = 26
-			probLayersWithWeight[layerIdx] = statProbLayerWithWeight(incidentDrills, ceil, floor, layerIdx)
-			probBlockLayers[layerIdx] = statProbBlockLayer(constant.DrillSet(), ceil, floor, layerIdx)
+			probLayersWithWeight[layerIdx] = utils.StatProbLayerWithWeight(incidentDrills, ceil, floor, layerIdx)
+			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(constant.DrillSet(), ceil, floor, layerIdx)
 
 			if probBlockWithWeight >= 0.0000001 {
 				probLayerBlock2s[layerIdx] = probBlockLayers[layerIdx] * probLayersWithWeight[layerIdx] / probBlockWithWeight
 			}
 			a, b, c := probLayersWithWeight[layerIdx], probBlockLayers[layerIdx], probLayerBlock2s[layerIdx]
-			hole(a, b, c)
+			utils.Hole(a, b, c)
 		}
 		probLayerBlocks3s = append(probLayerBlocks3s, probLayerBlock2s)
 
@@ -102,9 +103,9 @@ func generateVirtualDrill(x, y float64, blocks []float64) (virtualDrill entity.D
 		ceil, floor := virtualDrill.LayerFloorHeights[idx-1], virtualDrill.LayerFloorHeights[idx]
 		bidx := blocksIndex(blocks, ceil, floor)
 		probs := probLayerBlocks3s[bidx]
-		layer, prob := findMaxFloat64s(probs)
+		layer, prob := utils.FindMaxFloat64s(probs)
 		virtualDrill.Layers = append(virtualDrill.Layers, int64(layer))
-		hole(prob)
+		utils.Hole(prob)
 		//log.Println(bidx, ceil, floor, layer, prob)
 		//log.Println(probs)
 	}
