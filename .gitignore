@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -14,3 +15,22 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+=======
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+.DS_Store
+.idea
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+>>>>>>> 34e6069b56f966af97c9e8c24edc3db14aa285d2
