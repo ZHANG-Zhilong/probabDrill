@@ -52,8 +52,8 @@ func init2() {
 		//add basic
 		contents := readFile(Basic)
 		cs := strings.Split(contents, "\n")
-		if len(cs)<10{
-			log.Println("error split")
+		if len(cs) < 10 {
+			log.Fatal("error split")
 		}
 		for _, d := range cs {
 			temp := strings.Split(d, ",")
@@ -86,10 +86,10 @@ func init2() {
 
 		//add layers
 		contents = readFile(Layer)
-		cs = strings.Split(contents, "\n")
-		if len(cs)<10{
-			log.Println("error split")
+		if strings.Index(contents, "\r\n") > 0 {
+			log.Fatal("error, the file is crlf, not lf")
 		}
+		cs = strings.Split(contents, "\n")
 		for _, d := range cs {
 			temp := strings.Split(d, ",")
 			if len(temp) == 0 {
@@ -136,10 +136,10 @@ func initBoundary() {
 	log.SetFlags(log.Lshortfile)
 	onceInitBoundary.Do(func() {
 		contents := readFile(Boundary)
-		cs := strings.Split(contents, "\n")
-		if len(cs)<10{
-			log.Println("error split")
+		if strings.Index(contents, "\r\n") > 0 {
+			log.Fatal("error, the file is crlf, not lf")
 		}
+		cs := strings.Split(contents, "\n")
 		for _, p := range cs {
 			temp := strings.Split(p, "  ")
 			x, _ := strconv.ParseFloat(temp[0], 64)

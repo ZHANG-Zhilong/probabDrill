@@ -26,25 +26,25 @@ func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
 	log.Println(gridy)
 	blocks := getBlockHeights(drills, constant.ResZ)
 	bx, by := constant.GetBoundary()
-	var in, notin int
+	var in, out int
 	for idx := range gridx {
 		for idy := range gridy {
 			x := gridx[idx]
 			y := gridy[idy]
 			if isInPolygon(bx, by, x, y) {
 				in++
-				log.Println("in", in, gridx[idx], gridy[idy])
+
 				virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
 			} else {
-				notin++
-				log.Println(notin, "not in", gridx[idx], gridy[idy])
+				out++
 			}
 		}
 	}
-	//for idx, _ := range bx {
-	//	x, y := bx[idx], by[idx]
-	//	virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
-	//}
+	log.Println("drillIn:", in, " drillOut:", out)
+	for idx, _ := range bx {
+		x, y := bx[idx], by[idx]
+		virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
+	}
 	return
 }
 func setLengthAndZ(drill *entity.Drill, incidentDrills []entity.Drill) {

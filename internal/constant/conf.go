@@ -57,14 +57,14 @@ const ScaleZ float64 = 1
 //Sr search radius
 const Sr float64 = 100
 
-//const Basic string = "/Users/zhangzhilong/go/src/probabDrill-main/assets/basic_info.dat"
-const Basic string = "C:/Users/张志龙/go/src/probabDrill-main/assets/basic_info.dat"
-//const Layer string = "/Users/zhangzhilong/go/src/probabDrill-main/assets/layer_info.dat"
-const Layer string = "C:/Users/张志龙/go/src/probabDrill-main/assets/layer_info.dat"
-//const Boundary string = "/Users/zhangzhilong/go/src/probabDrill-main/assets/boundary_info.dat"
-const Boundary string = "C:/Users/张志龙/go/src/probabDrill-main/assets/boundary_info.dat"
-//const StdLayer string = "/Users/zhangzhilong/go/src/probabDrill-main/assets/std_layer_info.dat"
-const StdLayer string = "C:/Users/张志龙/go/src/probabDrill-main/assets/std_layer_info.dat"
+//const Basic string = "/Users/zhangzhilong/go/src/probabDrill/assets/basic_info.dat"
+const Basic string = "C:/Users/张志龙/go/src/probabDrill/assets/basic_info.dat"
+//const Layer string = "/Users/zhangzhilong/go/src/probabDrilln/assets/layer_info.dat"
+const Layer string = "C:/Users/张志龙/go/src/probabDrill/assets/layer_info.dat"
+//const Boundary string = "/Users/zhangzhilong/go/src/probabDrill/assets/boundary_info.dat"
+const Boundary string = "C:/Users/张志龙/go/src/probabDrill/assets/boundary_info.dat"
+//const StdLayer string = "/Users/zhangzhilong/go/src/probabDrill/assets/std_layer_info.dat"
+const StdLayer string = "C:/Users/张志龙/go/src/probabDrill/assets/std_layer_info.dat"
 
 const StdLen int64 = 38
 
