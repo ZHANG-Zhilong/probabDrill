@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"awesome/internal/constant"
-	"awesome/internal/entity"
 	"fmt"
 	"log"
+	"probabDrill-main/internal/constant"
+	"probabDrill-main/internal/entity"
 	"testing"
 )
 
@@ -75,7 +75,7 @@ func TestGenerateVirtualDrill(t *testing.T) {
 	drill.Print()
 
 	blocks := getBlockHeights(constant.DrillSet(), constant.ResZ)
-	virtualDrill := GenerateVirtualDrill(drill.X+1, drill.Y+1, blocks)
+	virtualDrill := generateVirtualDrill(drill.X+1, drill.Y+1, blocks)
 
 	log.Println("virtual drill")
 	virtualDrill.Print()

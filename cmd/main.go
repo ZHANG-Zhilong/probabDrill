@@ -1,26 +1,17 @@
-<<<<<<< HEAD
 package main
 
 import (
-	"awesome/internal/constant"
-	"awesome/internal/utils"
-)
-
-func main() {
-	drills := constant.DrillSet()
-	virtualDrillsCrossGrid := utils.GetGridDrills(drills)
-	utils.DisplayDrills(virtualDrillsCrossGrid)
-}
-=======
-package main
-
-import (
+	"log"
 	"probabDrill-main/internal/constant"
 	"probabDrill-main/internal/utils"
 )
+
 func main() {
+	log.SetFlags(log.Lshortfile)
 	drills := constant.DrillSet()
 	virtualDrillsCrossGrid := utils.GetGridDrills(drills)
 	utils.DisplayDrills(virtualDrillsCrossGrid)
+	//for _, d := range drills {
+	//	log.Println(d.X, "\t", d.Y)
+	//}
 }
->>>>>>> 34e6069b56f966af97c9e8c24edc3db14aa285d2
