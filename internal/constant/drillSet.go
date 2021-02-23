@@ -1,9 +1,9 @@
 package constant
 
 import (
-	"awesome/internal/entity"
 	"io/ioutil"
 	"os"
+	"probabDrill-main/internal/entity"
 	"strconv"
 	"strings"
 	"sync"
@@ -45,14 +45,14 @@ func DrillSet() (ds []entity.Drill) {
 func init2() {
 	once2.Do(func() {
 		var drills []entity.Drill
-		var drillMap map[string]int = make(map[string]int)
+		var drillMap = make(map[string]int)
 
 		//add basic
 		contents := readFile(Basic)
 		cs := strings.Split(contents, "\r\n")
 		for _, d := range cs {
 			temp := strings.Split(d, ",")
-			var valid bool = true
+			var valid = true
 			for i := 0; i < len(temp); i++ {
 				if len(temp[i]) == 0 {
 					valid = false
@@ -87,7 +87,7 @@ func init2() {
 			if len(temp) == 0 {
 				continue
 			}
-			var seq int64 = GetSeqByName(temp[1])
+			var seq = GetSeqByName(temp[1])
 			if idx, ok := drillMap[temp[0]]; ok {
 
 				drills[idx].Layers = append(drills[idx].Layers, seq)

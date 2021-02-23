@@ -58,16 +58,21 @@ const ScaleZ float64 = 1
 const Sr float64 = 100
 
 //Basic path
-const Basic string = "/Users/zhangzhilong/go/src/awesome/assets/basic_info.dat"
+//const Basic string = "/Users/zhangzhilong/go/src/awesome/assets/basic_info.dat"
+const Basic string = "C:/Users/张志龙/go/src/probabDrill-main/assets/basic_info.dat"
 
 //Layer path
-const Layer string = "/Users/zhangzhilong/go/src/awesome/assets/layer_info.dat"
+//const Layer string = "/Users/zhangzhilong/go/src/awesome/assets/layer_info.dat"
+const Layer string = "C:/Users/张志龙/go/src/probabDrill-main/assets/layer_info.dat"
 
 //Boundary path
-const Boundary string = "/Users/zhangzhilong/go/src/awesome/assets/boundary_info.dat"
+//const Boundary string = "/Users/zhangzhilong/go/src/awesome/assets/boundary_info.dat"
+const Boundary string = "C:/Users/张志龙/go/src/probabDrill-main/assets/boundary_info.dat"
 
 //StdLayer path
-const StdLayer string = "/Users/zhangzhilong/go/src/awesome/assets/std_layer_info.dat"
+//const StdLayer string = "/Users/zhangzhilong/go/src/awesome/assets/std_layer_info.dat"
+const StdLayer string = "C:/Users/张志龙/go/src/probabDrill-main/assets/std_layer_info.dat"
+
 
 const StdLen int64 = 38
 

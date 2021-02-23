@@ -1,8 +1,8 @@
 package constant
 
 import (
-	"awesome/internal/entity"
 	"fmt"
+	"probabDrill-main/internal/entity"
 	"testing"
 )
 

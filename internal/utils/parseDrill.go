@@ -1,11 +1,11 @@
 package utils
 
 import (
-	"awesome/internal/constant"
-	"awesome/internal/entity"
 	"fmt"
 	"log"
 	"math"
+	"probabDrill-main/internal/constant"
+	"probabDrill-main/internal/entity"
 	"sort"
 )
 
@@ -35,10 +35,10 @@ func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
 			}
 		}
 	}
-	for idx, _ := range bx {
-		x, y := bx[idx], by[idx]
-		virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
-	}
+	//for idx, _ := range bx {
+	//	x, y := bx[idx], by[idx]
+	//	virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
+	//}
 	return
 }
 func setLengthAndZ(drill *entity.Drill, incidentDrills []entity.Drill) {

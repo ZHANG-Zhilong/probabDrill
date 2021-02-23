@@ -1,10 +1,9 @@
 package main
 
 import (
-	"awesome/internal/constant"
-	"awesome/internal/utils"
+	"probabDrill-main/internal/constant"
+	"probabDrill-main/internal/utils"
 )
-
 func main() {
 	drills := constant.DrillSet()
 	virtualDrillsCrossGrid := utils.GetGridDrills(drills)
