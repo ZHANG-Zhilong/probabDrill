@@ -67,7 +67,7 @@ func (drill Drill) GetBottomHeight() (bottom float64) {
 	return
 }
 func (drill Drill) IsValid() (valid bool) {
-	if drill.length != drill.Z-drill.GetBottomHeight() {
+	if drill.GetLength() != drill.Z-drill.GetBottomHeight() {
 		return false
 	}
 	if len(drill.LayerFloorHeights) != len(drill.Layers) {

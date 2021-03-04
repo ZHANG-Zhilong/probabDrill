@@ -6,19 +6,20 @@ import (
 	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 	"probabDrill/internal/utils"
+	"runtime/debug"
 	"sort"
 )
 
-func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
+func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 
 	px, py := constant.GridXY, constant.GridXY
-	l, r, t, b := getDrillsRecXOY(drills)
+	l, r, t, b := getDrillsRecXOY(drillSet)
 
 	//grid to interpolate
 	gridx, gridy := utils.GetGrids(px, py, l, r, t, b)
 	log.Println(gridx)
 	log.Println(gridy)
-	blocks := makeBlocks(drills, constant.BlockResZ)
+	blocks := makeBlocks(drillSet, constant.BlockResZ)
 	bx, by := constant.GetBoundary()
 	var in, out int
 	for idx := range gridx {
@@ -27,8 +28,7 @@ func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
 			y := gridy[idy]
 			if utils.IsInPolygon(bx, by, x, y) {
 				in++
-
-				virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
+				virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
 			} else {
 				out++
 			}
@@ -37,24 +37,46 @@ func GetGridDrills(drills []entity.Drill) (virtualDrills []entity.Drill) {
 	log.Println("drillIn:", in, " drillOut:", out)
 	for idx, _ := range bx {
 		x, y := bx[idx], by[idx]
-		virtualDrills = append(virtualDrills, generateVirtualDrill(x, y, blocks))
+		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
 	}
 	return
 }
 func setLengthAndZ(drill *entity.Drill, incidentDrills []entity.Drill) {
-	var length, z float64 = 0, 0
+	log.SetFlags(log.Lshortfile)
+	var length, z, bottom float64 = 0, 0, 0
+	for _, d := range incidentDrills {
+		if d.GetBottomHeight() < bottom {
+			bottom = d.GetBottomHeight()
+		}
+	}
 	for idx := 0; idx < len(incidentDrills); idx++ {
 		length += incidentDrills[idx].GetLength() * incidentDrills[idx].GetWeight()
 		z += incidentDrills[idx].Z * incidentDrills[idx].GetWeight()
 	}
+	if length > drill.Z-bottom {
+		length = drill.Z - bottom
+	}
 	drill.SetLength(length)
 	drill.SetZ(z)
+	if drill.GetBottomHeight() < bottom {
+		drill.SetLength(drill.Z - bottom)
+	}
+	if drill.Z <= drill.GetBottomHeight() {
+		debug.PrintStack()
+		drill.Print()
+		log.Fatal("error")
+	}
 }
-func generateVirtualDrill(x, y float64, blocks []float64) (virtualDrill entity.Drill) {
+func generateVirtualDrill(drillSet []entity.Drill, x, y float64, blocks []float64) (virtualDrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
 	virtualDrill = virtualDrill.MakeDrill(constant.GenVirtualDrillName(), x, y, 0)
-	incidentDrills := obtainIncidentDrills(virtualDrill, constant.RadiusIn)
-	log.Println(virtualDrill.Name)
+	incidentDrills := obtainIncidentDrills(drillSet, virtualDrill, constant.RadiusIn)
+	for _, d := range incidentDrills {
+		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
+			return d
+		}
+	}
+	//log.Println(virtualDrill.Name)
 	setClassicalIdwWeights(virtualDrill, incidentDrills)
 	setLengthAndZ(&virtualDrill, incidentDrills)
 	virtualDrill.LayerFloorHeights = explodedHeights(blocks, virtualDrill.Z, virtualDrill.GetBottomHeight())
@@ -76,7 +98,7 @@ func generateVirtualDrill(x, y float64, blocks []float64) (virtualDrill entity.D
 		for layerIdx := int64(1); layerIdx < constant.StdLen; layerIdx++ { //layer[0] is ground.
 			//layerIdx = 26
 			probLayersWithWeight[layerIdx] = utils.StatProbLayerWithWeight(incidentDrills, ceil, floor, layerIdx)
-			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(constant.DrillSet(), ceil, floor, layerIdx)
+			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(drillSet, ceil, floor, layerIdx)
 
 			if probBlockWithWeight >= 0.0000001 {
 				probLayerBlock2s[layerIdx] = probBlockLayers[layerIdx] * probLayersWithWeight[layerIdx] / probBlockWithWeight
@@ -86,22 +108,37 @@ func generateVirtualDrill(x, y float64, blocks []float64) (virtualDrill entity.D
 		}
 		probLayerBlocks3s = append(probLayerBlocks3s, probLayerBlock2s)
 
-		//log.Printf("blocks ceil:%.2f, floor:%.2f, p(block):%f\n", ceil, floor, probBlockWithWeight)
+		//log.Printf("[%.2f, %.2f] ", ceil, floor)
 		//printFloat64s(probLayersWithWeight)
 		//printFloat64s(probBlockLayers)
-		//printFloat64s(probLayerBlock2s)
+		//utils.PrintFloat64s(probLayerBlock2s)
 
 		//idx, val := findMaxFloat64s(probLayerBlock2s)
 		//log.Println(idx, val)
 		//fmt.Println("======")
 	}
-
+	//log.Println("info generate virtual drill.")
+	//fmt.Printf("name\tdist\tweight\n")
+	//for _, d := range incidentDrills {
+	//	fmt.Printf("%s\t%.2f\t%.2f\n", d.Name, d.DistanceBetween(virtualDrill), d.GetWeight())
+	//}
+	//fmt.Println("blocks, p(layer|block)")
+	//for idx := 1; idx < len(probLayerBlocks3s); idx++ {
+	//	fmt.Printf("[%.2f\t%.2f]", blocks[idx-1], blocks[idx])
+	//	utils.PrintFloat64s(probLayerBlocks3s[idx][1:])
+	//}
 	//log.Println("initial drill.")
 	//virtualDrill.Print()
 
 	for idx := 1; idx < len(virtualDrill.LayerFloorHeights); idx++ {
 		ceil, floor := virtualDrill.LayerFloorHeights[idx-1], virtualDrill.LayerFloorHeights[idx]
 		bidx := blocksIndex(blocks, ceil, floor)
+		if bidx == -1 {
+			log.Printf("drill name: %s, idx:%d\n", virtualDrill.Name, idx)
+			log.Printf("ceil:%f, floor:%f\n", ceil, floor)
+			log.Println(virtualDrill.LayerFloorHeights)
+			log.Fatalln(blocks)
+		}
 		probs := probLayerBlocks3s[bidx]
 		layer, prob := utils.FindMaxFloat64s(probs)
 		virtualDrill.Layers = append(virtualDrill.Layers, int64(layer))
@@ -133,6 +170,8 @@ func generateVirtualDrill(x, y float64, blocks []float64) (virtualDrill entity.D
 	//	d.Print()
 	//	//log.Printf("%+v", d)
 	//}
+	log.Println(virtualDrill.Name)
+	virtualDrill.Print()
 	return
 }
 func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (weights []float64) {
@@ -174,10 +213,10 @@ func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 	}
 	return weights
 }
-func obtainIncidentDrills(drill entity.Drill, includeNum int) (drills []entity.Drill) {
-
-	drillSet := constant.DrillSet()
-
+func obtainIncidentDrills(drillSet []entity.Drill, drill entity.Drill, includeNum int) (drills []entity.Drill) {
+	if includeNum > len(drillSet) {
+		includeNum = len(drillSet)
+	}
 	dists := make([]float64, len(drillSet), len(drillSet))
 	for i, d := range drillSet {
 		dists[i] = drill.DistanceBetween(d)

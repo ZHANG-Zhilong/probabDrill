@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"log"
+	"math"
 	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 	"probabDrill/internal/utils"
@@ -76,10 +77,59 @@ func TestGenerateVirtualDrill(t *testing.T) {
 	drill.Print()
 
 	blocks := makeBlocks(constant.DrillSet(), constant.BlockResZ)
-	virtualDrill := generateVirtualDrill(drill.X+1, drill.Y+1, blocks)
+	virtualDrill := generateVirtualDrill(constant.DrillSet(), drill.X+1, drill.Y+1, blocks)
 
 	log.Println("virtual drill")
 	virtualDrill.Print()
+}
+func TestGenerateVirtualDrill2(t *testing.T) {
+	log.SetFlags(log.Lshortfile)
+	drill1 := entity.Drill{
+		Name: "1", X: 0, Y: 0, Z: 0,
+		Layers:            []int64{0, 1, 2, 3},
+		LayerFloorHeights: []float64{0, -1, -2, -3},
+	}
+	drill2 := entity.Drill{
+		Name: "2", X: 1, Y: 0, Z: 0,
+		Layers:            []int64{0, 1, 2, 2},
+		LayerFloorHeights: []float64{0, -1, -2, -3},
+	}
+	drill3 := entity.Drill{
+		Name: "3", X: 0, Y: 1, Z: 0,
+		Layers:            []int64{0, 1, 2, 3},
+		LayerFloorHeights: []float64{0, -1.2, -2.3, -3},
+	}
+	drill4 := entity.Drill{
+		Name: "4", X: 1, Y: 1, Z: 0,
+		Layers:            []int64{0, 1, 2, 3},
+		LayerFloorHeights: []float64{0, -1.5, -2.3, -3},
+	}
+	drillSet := []entity.Drill{drill1, drill2, drill3, drill4}
+	blocks := makeBlocks(drillSet, 0.02)
+	fmt.Println(blocks)
+	var virtualDrills []entity.Drill
+	for x := 0.0; x < 1; x += 0.1 {
+		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, 0.5, blocks))
+	}
+	for _, v := range virtualDrills {
+		v.Print()
+	}
+	utils.DrawDrills(virtualDrills)
+}
+
+func TestGenerateVirtualDrill3(t *testing.T) {
+	log.SetFlags(log.Lshortfile)
+	drillSet := constant.DrillSet()
+	blocks := makeBlocks(drillSet, 0.02)
+	var virtualDrills []entity.Drill
+	x1, y1 := drillSet[0].X, drillSet[0].Y
+	x2, y2 := drillSet[1].X, drillSet[1].Y
+	step := (x2 - x1) / 10
+	for x := x1; math.Abs(x) < math.Abs(x2-x1); x += step {
+		y := utils.GetLine(x1, y1, x2, y2, x)
+		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
+	}
+	utils.DrawDrills(virtualDrills)
 }
 func TestStatLayer(t *testing.T) {
 	//log.SetFlags(log.Lshortfile)
@@ -94,7 +144,7 @@ func TestStats(t *testing.T) {
 	log.SetFlags(log.Lshortfile)
 	virtualDrill = virtualDrill.MakeDrill(constant.GenVirtualDrillName(), 5580, -15020, 0)
 	blocks := makeBlocks(constant.DrillSet(), constant.BlockResZ)
-	incidentDrills := obtainIncidentDrills(virtualDrill, constant.RadiusIn)
+	incidentDrills := obtainIncidentDrills(constant.DrillSet(), virtualDrill, constant.RadiusIn)
 	setClassicalIdwWeights(virtualDrill, incidentDrills)
 	setLengthAndZ(&virtualDrill, incidentDrills)
 	virtualDrill.LayerFloorHeights = explodedHeights(blocks, virtualDrill.Z, virtualDrill.GetBottomHeight())
@@ -130,7 +180,7 @@ func TestProbLayerAndBlocksWithWeight(t *testing.T) {
 	blocks := makeBlocks(constant.DrillSet(), constant.BlockResZ)
 	drills := constant.DrillSet()
 	drill0 := drills[0]
-	incidentDrills := obtainIncidentDrills(drill0, 50)
+	incidentDrills := obtainIncidentDrills(constant.DrillSet(), drill0, 50)
 	setClassicalIdwWeights(drill0, incidentDrills)
 	log.SetFlags(log.Lshortfile)
 	for idx := 1; idx < len(blocks); idx++ {
@@ -143,7 +193,7 @@ func TestProbLayerAndBlocksWithWeight(t *testing.T) {
 	}
 }
 func TestStatProbBlockWithWeight(t *testing.T) {
-	incidentDrillSet := obtainIncidentDrills(constant.DrillSet()[0], 3)
+	incidentDrillSet := obtainIncidentDrills(constant.DrillSet(), constant.DrillSet()[0], 3)
 	setClassicalIdwWeights(constant.DrillSet()[0], incidentDrillSet)
 	blocks := makeBlocks(constant.DrillSet(), constant.BlockResZ)
 	for _, d := range incidentDrillSet {

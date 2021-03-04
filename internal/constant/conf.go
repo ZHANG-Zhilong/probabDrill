@@ -7,7 +7,7 @@ const OffY float64 = -499523.0
 const ScaleXY float64 = 1
 const ScaleZ float64 = 1
 const StdLen int64 = 38  //len of std layer num
-const RadiusIn int = 4   //how many real drills in search radius
+const RadiusIn int = 3   //how many real drills in search radius
 const IdwPow float64 = 2 //power of inverse weighting interpolation method
 
 const Layer string = "/Users/zhangzhilong/go/src/probabDrill/assets/layer_info.dat"
