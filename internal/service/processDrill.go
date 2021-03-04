@@ -244,7 +244,7 @@ func heightRange(drills []entity.Drill) (ceil float64, floor float64) {
 	}
 	return ceil, floor
 }
-func makeBlocks(drillSet []entity.Drill, resz float64) (blocksHeight []float64) {
+func makeBlocks(drillSet []entity.Drill, res float64) (blocksHeight []float64) {
 	drillsCeil, drillsFloor := -math.MaxFloat64, math.MaxFloat64
 	for _, d := range drillSet {
 		if d.Z > drillsCeil {
@@ -257,12 +257,12 @@ func makeBlocks(drillSet []entity.Drill, resz float64) (blocksHeight []float64) 
 
 	blocksHeight = append(blocksHeight, drillsCeil)
 
-	for drillsCeil-resz > drillsFloor {
-		blocksHeight = append(blocksHeight, drillsCeil-resz)
-		drillsCeil = drillsCeil - resz
+	for drillsCeil-res > drillsFloor {
+		blocksHeight = append(blocksHeight, drillsCeil-res)
+		drillsCeil = drillsCeil - res
 	}
 
-	//the last block may be un-standard block length, whose length may less than resz
+	//the last block may be un-standard block length, whose length may less than res
 	blocksHeight = append(blocksHeight, drillsFloor)
 
 	return
