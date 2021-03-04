@@ -126,11 +126,27 @@ func TestGenerateVirtualDrill3(t *testing.T) {
 	}
 	var virtualDrills []entity.Drill
 	for idx := 1; idx < len(drills); idx++ {
-		vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 2)
+		vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 3)
 		virtualDrills = append(virtualDrills, vdrills...)
 	}
-
-	utils.DrawDrills(virtualDrills, 50)
+	utils.DrawDrills(virtualDrills)
+	utils.DisplayDrills(virtualDrills)
+}
+func TestGetVirtualDrillsBetween(t *testing.T) {
+	drill1 := constant.DrillSet()[0]
+	drill2 := constant.DrillSet()[1]
+	vdrills := GetVirtualDrillsBetween(drill1, drill2, 5)
+	fmt.Println(len(vdrills))
+}
+func TestGenerateVirtualDrill4(t *testing.T) {
+	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
+	var drills []entity.Drill
+	for _, name := range drillNames {
+		if drill, ok := constant.GetDrillByName(name); ok {
+			drills = append(drills, drill)
+		}
+	}
+	utils.DrawDrills(drills)
 }
 func TestStatLayer(t *testing.T) {
 	//log.SetFlags(log.Lshortfile)

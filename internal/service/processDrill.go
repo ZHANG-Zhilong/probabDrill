@@ -321,13 +321,11 @@ func GetVirtualDrillsBetween(drill1, drill2 entity.Drill, n int) (virtualDrills 
 	log.SetFlags(log.Lshortfile)
 	drillSet := constant.DrillSet()
 	blocks := makeBlocks(drillSet, 0.02)
-	x1, y1 := drillSet[0].X, drillSet[0].Y
-	x2, y2 := drillSet[1].X, drillSet[1].Y
-	step := (x2 - x1) / float64(n)
-	for x := x1 + step; math.Abs(x) != math.Abs(x2-x1); x += step {
-		y := utils.GetLine(x1, y1, x2, y2, x)
-		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
-		virtualDrills[len(virtualDrills)-1].Print()
+	x1, y1 := drill1.X, drill1.Y
+	x2, y2 := drill2.X, drill2.Y
+	vertices := utils.SplitSegment(x1, y1, x2, y2, n)
+	for idx := 1; idx < len(vertices); idx += 2 {
+		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, vertices[idx-1], vertices[idx], blocks))
 	}
 	return
 }

@@ -29,7 +29,7 @@ func drawDrill(canvas *svg.SVG, width, height int, drill entity.Drill, x, y int,
 	if !drill.IsValid() {
 		return
 	}
-	drillWidth := width / 50
+	drillWidth := 5
 	for idx := 1; idx < len(drill.Layers); idx++ {
 		x0 := x - drillWidth/2
 		y0 := getMappedY(drill, height, drill.LayerFloorHeights[idx-1], scaley)
@@ -51,7 +51,7 @@ func nextIdx(idx int, drill entity.Drill) (id int) {
 	return
 }
 func connect(canvas *svg.SVG, width, height int, scaley float64, drill1 entity.Drill, x1 int, drill2 entity.Drill, x2 int) () {
-	drillWidth := width / 50
+	drillWidth := 5
 	idx1, idx2 := 0, 0
 	var flag = 1
 	for {
@@ -102,14 +102,13 @@ func connect(canvas *svg.SVG, width, height int, scaley float64, drill1 entity.D
 	//	canvas.Line(x1, y1, x2, y2, "stroke-width=\"1\" stroke=\"blue\"")
 	//}
 }
-func DrawDrills(drills []entity.Drill, dist int) {
+func DrawDrills(drills []entity.Drill) {
 	log.SetFlags(log.Lshortfile)
 	if len(drills) < 2 {
 		log.Fatal("钻孔过少", len(drills))
 		return
 	}
-	width := len(drills) * dist
-	height := 600
+
 	if _, err := os.Stat("./out.svg"); !os.IsNotExist(err) {
 		_ = os.Remove("./out.svg")
 	}
@@ -118,7 +117,8 @@ func DrawDrills(drills []entity.Drill, dist int) {
 		panic(err)
 	}
 	defer path.Close()
-
+	width := 1500
+	height := 600
 	canvas := svg.New(path)
 	canvas.Start(width, height)
 	distAccum := []int{0}
@@ -171,5 +171,13 @@ func GetLine(x1, y1, x2, y2, x float64) (y float64) {
 		log.Fatal("error")
 	}
 	y = (x-x1)*(y2-y1)/(x2-x1) + y1
+	return
+}
+func SplitSegment(x1, y1, x2, y2 float64, n int) (vertices []float64) {
+	step := (x2 - x1) / float64(n+1)
+	for x := x1 + step; math.Abs(x-x1) < math.Abs(x2-x1); x += step {
+		y := GetLine(x1, y1, x2, y2, x)
+		vertices = append(vertices, x, y)
+	}
 	return
 }
