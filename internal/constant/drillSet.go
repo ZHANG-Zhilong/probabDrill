@@ -12,7 +12,7 @@ import (
 
 var once2 sync.Once
 var drillSet []entity.Drill
-var drillMap map[string]int
+var drillMap map[string]int = make(map[string]int)
 
 var (
 	mu      sync.Mutex
@@ -47,7 +47,6 @@ func init2() {
 	once2.Do(func() {
 		log.SetFlags(log.Lshortfile)
 		var drills []entity.Drill
-		var drillMap = make(map[string]int)
 
 		//add basic
 		contents := readFile(Basic)
@@ -97,7 +96,6 @@ func init2() {
 			}
 			var seq = GetSeqByName(temp[1])
 			if idx, ok := drillMap[temp[0]]; ok {
-
 				drills[idx].Layers = append(drills[idx].Layers, seq)
 				depth, _ := strconv.ParseFloat(temp[2], 64)
 				drills[idx].LayerFloorHeights = append(drills[idx].LayerFloorHeights, drills[idx].Z-depth)

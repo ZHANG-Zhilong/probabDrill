@@ -53,6 +53,14 @@ func (drill *Drill) SetWeight(weight float64) {
 func (drill Drill) GetWeight() float64 {
 	return drill.weight
 }
+func (drill Drill) GetBottomHeightByLayer(layer int64) (height []float64) {
+	for idx := 0; idx < len(drill.Layers); idx++ {
+		if layer == drill.Layers[idx] {
+			height = append(height, drill.LayerFloorHeights[idx])
+		}
+	}
+	return
+}
 func (drill *Drill) GetLength() (length float64) {
 	if drill.length == 0.0 {
 		drill.length = drill.Z - drill.LayerFloorHeights[len(drill.LayerFloorHeights)-1]

@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"log"
-	"math"
 	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 	"probabDrill/internal/utils"
@@ -118,18 +117,20 @@ func TestGenerateVirtualDrill2(t *testing.T) {
 }
 
 func TestGenerateVirtualDrill3(t *testing.T) {
-	log.SetFlags(log.Lshortfile)
-	drillSet := constant.DrillSet()
-	blocks := makeBlocks(drillSet, 0.02)
-	var virtualDrills []entity.Drill
-	x1, y1 := drillSet[0].X, drillSet[0].Y
-	x2, y2 := drillSet[1].X, drillSet[1].Y
-	step := (x2 - x1) / 10
-	for x := x1; math.Abs(x) < math.Abs(x2-x1); x += step {
-		y := utils.GetLine(x1, y1, x2, y2, x)
-		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
+	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
+	var drills []entity.Drill
+	for _, name := range drillNames {
+		if drill, ok := constant.GetDrillByName(name); ok {
+			drills = append(drills, drill)
+		}
 	}
-	utils.DrawDrills(virtualDrills)
+	var virtualDrills []entity.Drill
+	for idx := 1; idx < len(drills); idx++ {
+		vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 2)
+		virtualDrills = append(virtualDrills, vdrills...)
+	}
+
+	utils.DrawDrills(virtualDrills, 50)
 }
 func TestStatLayer(t *testing.T) {
 	//log.SetFlags(log.Lshortfile)

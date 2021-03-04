@@ -170,8 +170,8 @@ func generateVirtualDrill(drillSet []entity.Drill, x, y float64, blocks []float6
 	//	d.Print()
 	//	//log.Printf("%+v", d)
 	//}
-	log.Println(virtualDrill.Name)
-	virtualDrill.Print()
+	//log.Println(virtualDrill.Name)
+	//virtualDrill.Print()
 	return
 }
 func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (weights []float64) {
@@ -316,4 +316,18 @@ func blocksIndex(blocks []float64, ceil, floor float64) (index int) {
 		}
 	}
 	return -1
+}
+func GetVirtualDrillsBetween(drill1, drill2 entity.Drill, n int) (virtualDrills []entity.Drill) {
+	log.SetFlags(log.Lshortfile)
+	drillSet := constant.DrillSet()
+	blocks := makeBlocks(drillSet, 0.02)
+	x1, y1 := drillSet[0].X, drillSet[0].Y
+	x2, y2 := drillSet[1].X, drillSet[1].Y
+	step := (x2 - x1) / float64(n)
+	for x := x1 + step; math.Abs(x) != math.Abs(x2-x1); x += step {
+		y := utils.GetLine(x1, y1, x2, y2, x)
+		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
+		virtualDrills[len(virtualDrills)-1].Print()
+	}
+	return
 }
