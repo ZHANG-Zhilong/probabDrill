@@ -176,7 +176,6 @@ func prePos(layers *[]int, idx int) (layer int) {
 		} else {
 			idx--
 		}
-		//hello
 	}
 	return 0
 }
