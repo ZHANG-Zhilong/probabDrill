@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+var drillWidth = 7
+
 func getMappedY(drill entity.Drill, height int, dy, scaley float64) (y int) {
 	if dy == 0 {
 		y = int(height / 10)
@@ -37,7 +39,7 @@ func drawDrill(canvas *svg.SVG, width, height int, drill entity.Drill, x, y int,
 
 		canvas.Rect(x0, y0, drillWidth, blockLength, "fill=\"none\" stroke=\"black\" stroke-width=\"1\"")
 		canvas.Text(x, y0+blockLength*2/3,
-			strconv.FormatInt(drill.Layers[idx], 10), "text-anchor:middle;font-size:7px;fill:black")
+			strconv.FormatInt(int64(drill.Layers[idx]), 10), "text-anchor:middle;font-size:7px;fill:black")
 	}
 	canvas.Text(x, getMappedY(drill, height, drill.GetBottomHeight(), scaley)+15, drill.Name,
 		"text-anchor:middle;font-size:7px;fill:black")
@@ -51,7 +53,6 @@ func nextIdx(idx int, drill entity.Drill) (id int) {
 	return
 }
 func connect(canvas *svg.SVG, width, height int, scaley float64, drill1 entity.Drill, x1 int, drill2 entity.Drill, x2 int) () {
-	drillWidth := 5
 	idx1, idx2 := 0, 0
 	var flag = 1
 	for {
@@ -89,18 +90,6 @@ func connect(canvas *svg.SVG, width, height int, scaley float64, drill1 entity.D
 			break
 		}
 	}
-
-	//for _, layer := range drill1.Layers {
-	//	x1, x2 := x1+drillWidth/2, x2-drillWidth/2
-	//	b1s := drill1.GetBottomHeightByLayer(layer)
-	//	b2s := drill2.GetBottomHeightByLayer(layer)
-	//	if len(b1s) < 1 || len(b2s) < 1 {
-	//		return
-	//	}
-	//	y1 := getMappedY(drill1, height, b1s[0], scaley)
-	//	y2 := getMappedY(drill2, height, b2s[0], scaley)
-	//	canvas.Line(x1, y1, x2, y2, "stroke-width=\"1\" stroke=\"blue\"")
-	//}
 }
 func DrawDrills(drills []entity.Drill) {
 	log.SetFlags(log.Lshortfile)
@@ -108,7 +97,6 @@ func DrawDrills(drills []entity.Drill) {
 		log.Fatal("钻孔过少", len(drills))
 		return
 	}
-
 	if _, err := os.Stat("./out.svg"); !os.IsNotExist(err) {
 		_ = os.Remove("./out.svg")
 	}
@@ -125,9 +113,9 @@ func DrawDrills(drills []entity.Drill) {
 	var lengthMax int
 	for idx := 1; idx < len(drills); idx++ {
 		dist := drills[idx].DistanceBetween(drills[idx-1])
-		distAccum = append(distAccum, int(math.Ceil(dist))+distAccum[len(distAccum)-1])
+		distAccum = append(distAccum, int(math.Round(dist))+distAccum[len(distAccum)-1])
 		if float64(lengthMax) < drills[idx].GetLength() {
-			lengthMax = int(math.Ceil(drills[idx].GetLength()))
+			lengthMax = int(math.Round(drills[idx].GetLength()))
 		}
 	}
 	scalex := (float64(width) * 0.8) / float64(distAccum[len(distAccum)-1])

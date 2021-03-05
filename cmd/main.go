@@ -12,4 +12,6 @@ func main() {
 	drillSet := constant.DrillSet()
 	virtualDrillsCrossGrid := service.GetGridDrills(drillSet)
 	utils.DisplayDrills(virtualDrillsCrossGrid)
+
 }
+

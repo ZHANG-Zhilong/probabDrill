@@ -6,7 +6,7 @@ const OffX float64 = -3592727.0
 const OffY float64 = -499523.0
 const ScaleXY float64 = 1
 const ScaleZ float64 = 1
-const StdLen int64 = 38  //len of std layer num
+const StdLen int = 38  //len of std layer num
 const RadiusIn int = 3   //how many real drills in search radius
 const IdwPow float64 = 2 //power of inverse weighting interpolation method
 

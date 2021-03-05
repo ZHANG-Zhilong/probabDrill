@@ -16,12 +16,12 @@ var drillMap map[string]int = make(map[string]int)
 
 var (
 	mu      sync.Mutex
-	drillId int64
+	drillId int
 )
 
 func GenVirtualDrillName() (name string) {
 	mu.Lock()
-	name = "virtual" + strconv.FormatInt(drillId, 10)
+	name = "virtual" + strconv.FormatInt(int64(drillId), 10)
 	drillId++
 	mu.Unlock()
 	return name
@@ -148,4 +148,34 @@ func initBoundary() {
 			by = append(by, y)
 		}
 	})
+}
+func SimpleDrillSet() (drills []entity.Drill) {
+	var drill1, drill2, drill3, drill4 entity.Drill
+	drill1 = drill1.MakeDrill("1", 0, 0, 0)
+	drill2 = drill1.MakeDrill("2", 1, 0, 0)
+	drill3 = drill1.MakeDrill("3", 1, 1, 0)
+	drill4 = drill1.MakeDrill("4", 0, 1, 0)
+
+	drill1.AddLayer(1, -1)
+	drill1.AddLayer(1, -2)
+	drill1.AddLayer(6, -3)
+	drill1.AddLayer(3, -4)
+
+	drill2.AddLayer(2, -1)
+	drill2.AddLayer(5, -2)
+	drill2.AddLayer(3, -3)
+	drill2.AddLayer(4, -4)
+
+	drill3.AddLayer(1, -1)
+	drill3.AddLayer(5, -2)
+	drill3.AddLayer(6, -3)
+	drill3.AddLayer(4, -4)
+
+	drill4.AddLayer(1, -1)
+	drill4.AddLayer(2, -2)
+	drill4.AddLayer(3, -3)
+	drill4.AddLayer(4, -4)
+
+	drills = []entity.Drill{drill1, drill2, drill3, drill4}
+	return
 }

@@ -9,14 +9,14 @@ import (
 )
 
 var once sync.Once
-var seq *map[string]int64
+var seq *map[string]int
+//var layers *[]int
 
 //GetSeqByName return
-func GetSeqByName(name string) int64 {
+func GetSeqByName(name string) int {
 	init1()
 	return (*seq)[name]
 }
-
 
 //init1 init
 func init1() {
@@ -28,11 +28,11 @@ func init1() {
 		defer file.Close()
 		content, err := ioutil.ReadAll(file)
 		contents := strings.Split(string(content), "\n")
-		nameSeq := make(map[string]int64)
+		nameSeq := make(map[string]int)
 		for _, item := range contents {
 			items := strings.Split(item, "\t")
 			id, _ := strconv.ParseInt(items[2], 10, 64)
-			nameSeq[items[0]] = id
+			nameSeq[items[0]] = int(id)
 		}
 		seq = &nameSeq
 	})

@@ -31,7 +31,7 @@ func StatProbBlockWithWeight(drills []entity.Drill, blockCeil, blockFloor float6
 	}
 	return prob
 }
-func StatProbBlockAndLayer(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbBlockAndLayer(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	//p(blockAndLayer)
 	log.SetFlags(log.Lshortfile)
 	for _, drill := range drills {
@@ -45,7 +45,7 @@ func StatProbBlockAndLayer(drills []entity.Drill, blockCeil, blockFloor float64,
 	}
 	return prob
 }
-func StatProbBlockAndLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbBlockAndLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	for _, drill := range drills {
 		if seq, ok := drill.GetLayerSeq(blockCeil, blockFloor); ok && seq == layer {
 			prob += drill.GetWeight()
@@ -57,7 +57,7 @@ func StatProbBlockAndLayerWithWeight(drills []entity.Drill, blockCeil, blockFloo
 	}
 	return prob
 }
-func StatProbBlockLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbBlockLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	//p(block|layer)=p(blockAndLayer)/p(layer)= p(block ∩ layer)/p(layer)  //∩->\cap
 	probLayer := StatProbLayerWithWeight(drills, blockCeil, blockFloor, layer)
 	probLayerAndBlock := StatProbBlockAndLayerWithWeight(drills, blockCeil, blockFloor, layer)
@@ -72,7 +72,7 @@ func StatProbBlockLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor f
 	}
 	return prob
 }
-func StatProbBlockLayer(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbBlockLayer(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	//p(block|layer) = p(blockAndLayer)/p(layer)
 	probLayer := StatProbLayer(drills, blockCeil, blockFloor, layer)
 	probBlockAndLayer := StatProbBlockAndLayer(drills, blockCeil, blockFloor, layer)
@@ -81,7 +81,7 @@ func StatProbBlockLayer(drills []entity.Drill, blockCeil, blockFloor float64, la
 	}
 	return prob
 }
-func StatProbLayer(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbLayer(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	log.SetFlags(log.Lshortfile)
 	if len(drills) < 1 || blockCeil <= blockFloor {
 		log.Fatal("error")
@@ -110,7 +110,7 @@ func StatProbLayer(drills []entity.Drill, blockCeil, blockFloor float64, layer i
 	}
 	return prob
 }
-func StatProbLayerBlockWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbLayerBlockWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	//p(layer|block) = p(layerAndBlock)/p(block)
 	probBlockAndLayerWithWeight := StatProbBlockAndLayerWithWeight(drills, blockCeil, blockFloor, layer)
 	probBlocksWithWeight := StatProbBlockWithWeight(drills, blockCeil, blockFloor)
@@ -119,7 +119,7 @@ func StatProbLayerBlockWithWeight(drills []entity.Drill, blockCeil, blockFloor f
 	}
 	return prob
 }
-func StatProbLayerBlock(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbLayerBlock(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	//p(layer|block) = p(layerAndBlock)/p(block)
 	probBlockAndLayer := StatProbBlockAndLayer(drills, blockCeil, blockFloor, layer)
 	probBlocks := StatProbBlock(drills, blockCeil, blockFloor)
@@ -128,7 +128,7 @@ func StatProbLayerBlock(drills []entity.Drill, blockCeil, blockFloor float64, la
 	}
 	return prob
 }
-func StatProbLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int64) (prob float64) {
+func StatProbLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor float64, layer int) (prob float64) {
 	log.SetFlags(log.Lshortfile)
 	if len(drills) < 1 || blockCeil <= blockFloor {
 		log.Fatal("error")
@@ -155,3 +155,4 @@ func StatProbLayerWithWeight(drills []entity.Drill, blockCeil, blockFloor float6
 	}
 	return prob
 }
+

@@ -19,7 +19,7 @@ func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 	gridx, gridy := utils.GetGrids(px, py, l, r, t, b)
 	log.Println(gridx)
 	log.Println(gridy)
-	blocks := makeBlocks(drillSet, constant.BlockResZ)
+	blocks := MakeBlocks(drillSet, constant.BlockResZ)
 	bx, by := constant.GetBoundary()
 	var in, out int
 	for idx := range gridx {
@@ -95,7 +95,7 @@ func generateVirtualDrill(drillSet []entity.Drill, x, y float64, blocks []float6
 		var probBlockLayers = make([]float64, constant.StdLen, constant.StdLen)
 		var probLayerBlock2s = make([]float64, constant.StdLen, constant.StdLen)
 
-		for layerIdx := int64(1); layerIdx < constant.StdLen; layerIdx++ { //layer[0] is ground.
+		for layerIdx := int(1); layerIdx < constant.StdLen; layerIdx++ { //layer[0] is ground.
 			//layerIdx = 26
 			probLayersWithWeight[layerIdx] = utils.StatProbLayerWithWeight(incidentDrills, ceil, floor, layerIdx)
 			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(drillSet, ceil, floor, layerIdx)
@@ -141,7 +141,7 @@ func generateVirtualDrill(drillSet []entity.Drill, x, y float64, blocks []float6
 		}
 		probs := probLayerBlocks3s[bidx]
 		layer, prob := utils.FindMaxFloat64s(probs)
-		virtualDrill.Layers = append(virtualDrill.Layers, int64(layer))
+		virtualDrill.Layers = append(virtualDrill.Layers, int(layer))
 		utils.Hole(prob)
 		//log.Println(bidx, ceil, floor, layer, prob)
 		//log.Println(probs)
@@ -244,7 +244,7 @@ func heightRange(drills []entity.Drill) (ceil float64, floor float64) {
 	}
 	return ceil, floor
 }
-func makeBlocks(drillSet []entity.Drill, res float64) (blocksHeight []float64) {
+func MakeBlocks(drillSet []entity.Drill, res float64) (blocksHeight []float64) {
 	drillsCeil, drillsFloor := -math.MaxFloat64, math.MaxFloat64
 	for _, d := range drillSet {
 		if d.Z > drillsCeil {
@@ -320,7 +320,7 @@ func blocksIndex(blocks []float64, ceil, floor float64) (index int) {
 func GetVirtualDrillsBetween(drill1, drill2 entity.Drill, n int) (virtualDrills []entity.Drill) {
 	log.SetFlags(log.Lshortfile)
 	drillSet := constant.DrillSet()
-	blocks := makeBlocks(drillSet, 0.02)
+	blocks := MakeBlocks(drillSet, 0.02)
 	x1, y1 := drill1.X, drill1.Y
 	x2, y2 := drill2.X, drill2.Y
 	vertices := utils.SplitSegment(x1, y1, x2, y2, n)
