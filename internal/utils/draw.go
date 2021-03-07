@@ -26,7 +26,6 @@ func getMappedY(drill entity.Drill, height int, dy, scaley float64) (y int) {
 	}
 	return
 }
-
 func drawDrill(canvas *svg.SVG, width, height int, drill entity.Drill, x, y int, scaley float64) {
 	if !drill.IsValid() {
 		return

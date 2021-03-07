@@ -76,42 +76,68 @@ func FindMaxFloat64s(float64s []float64) (idx int, val float64) {
 	}
 	return idx, val
 }
-
-func UnifyStratum(drills *[]entity.Drill) (uniLayers []int) {
+func UnifyDrillsStrata(drills *[]entity.Drill,
+	check func([]int) []int) (stdDrills []entity.Drill) {
 	if len(*drills) < 2 {
 		return
 	}
-	var newLayer []int = (*drills)[0].Layers
-	CheckSeq(&newLayer)
-	for idx := 1; idx < len(*drills); idx++ {
-		layers := (*drills)[idx].Layers
-		newLayer = UnifySeq(layers, newLayer)
+	var repeat, nonRepeat []entity.Drill
+	var ps [][]int
+	for _, drill := range *drills {
+		if p := repeatPattern(drill.Layers); p != nil {
+			repeat = append(repeat, drill)
+			ps = append(ps, p...)
+		} else {
+			nonRepeat = append(nonRepeat, drill)
+		}
 	}
-	return newLayer
+	var stdLayers []int
+	if len(repeat) > 0 {
+		stdLayers = repeat[0].Layers
+		for idx := 0; idx < len(repeat); idx++ {
+			layers := repeat[idx].Layers
+			stdLayers = getUnifiedSeq(layers, stdLayers, check)
+		}
+	}
+	if len(nonRepeat) > 0 {
+		if len(stdLayers) == 0 { // no repeat layer in drill.
+			stdLayers = nonRepeat[0].Layers
+		}
+		for idx := 0; idx < len(nonRepeat); idx++ {
+			layers := nonRepeat[idx].Layers
+			markRepeat(layers, ps)
+			stdLayers = getUnifiedSeq(layers, stdLayers, check)
+		}
+	}
+	for _, d := range *drills {
+		stdDrills = append(stdDrills, d.StdSeq(stdLayers))
+	}
+	return stdDrills
 }
-func UnifySeq(seq1, seq2 []int) (seq []int) {
+
+func getUnifiedSeq(seq1, seq2 []int, check func([]int) []int) (seq []int) {
 	idx1, idx2 := 1, 1
 	seq = []int{0}
-	CheckSeq(&seq1)
-	CheckSeq(&seq2)
+	check(seq1)
+	check(seq2)
 	for {
 		if idx1 == len(seq1) && idx2 == len(seq2) {
 			break
 		}
 		if idx2 == len(seq2) && idx1 < len(seq1) ||
 			idx1 < len(seq1) && idx2 < len(seq2) && seq1[idx1] < seq2[idx2] {
-			addLayerForUnify(&seq, seq1[idx1])
+			seq = append(seq, seq1[idx1])
 			idx1++
 			continue
 		}
 		if idx1 == len(seq1) && idx2 < len(seq2) ||
 			idx1 < len(seq1) && idx2 < len(seq2) && seq1[idx1] > seq2[idx2] {
-			addLayerForUnify(&seq, seq2[idx2])
+			seq = append(seq, seq2[idx2])
 			idx2++
 			continue
 		}
 		if seq1[idx1] == seq2[idx2] {
-			addLayerForUnify(&seq, seq2[idx2])
+			seq = append(seq, seq1[idx1])
 			idx1++
 			idx2++
 			continue
@@ -119,9 +145,147 @@ func UnifySeq(seq1, seq2 []int) (seq []int) {
 	}
 	return seq
 }
+func CheckSeqZiChun(layers []int) (seq []int) {
+	for _, layer := range layers {
+		if layer < 0 {
+			return
+		}
+	}
+	//mark inverse and repeat
+	var layerMap map[int]int = make(map[int]int)
+	for i := 1; i < len(layers); i++ {
+		if isNormal(&layers, i) { //normal first
+			layerMap[(layers)[i]] = 1
+			continue
+		}
+		if isLack(&layers, i) { //lack first
+			layerMap[(layers)[i]] = 1
+			continue
+		}
+		if isInverse(&layers, i) {
+			layers[i] = -layers[i]
+			layerMap[layers[i]] = 1
+			continue
+		}
+		if _, ok := layerMap[layers[i]]; ok {
+			layers[i] = -layers[i]
+		}
+	}
+	seq = make([]int, len(layers), len(layers))
+	copy(seq, layers)
+	return
+}
+func CheckSeqMinNeg(layers []int) (checkedSeq []int) {
+	layerMap := make(map[int]int)
+	return checkSeqMinNeg(layers, 1, layerMap, true)
+}
+func checkSeqMinNeg(layers []int, start int, layerMap map[int]int, lackFirst bool) (checkedSeq []int) {
+	if start == len(layers) {
+		cseq := make([]int, len(layers))
+		copy(cseq, layers)
+		delete(layerMap, layers[start-1])
+		return cseq
+	}
+	//check repeat first.
+	if _, ok := layerMap[layers[start]]; ok {
+		layers[start] = -layers[start]
+		seq := checkSeqMinNeg(layers, start+1, layerMap, lackFirst)
+		layers[start] = -layers[start]
+		delete(layerMap, layers[start])
+		return seq
+	}
+
+	if isNormal(&layers, start) { //normal first
+		layerMap[layers[start]] = 1
+		return checkSeqMinNeg(layers, start+1, layerMap, lackFirst)
+	}
+
+	if isLack(&layers, start) && isInverse(&layers, start) {
+		layerMap[layers[start]] = 1
+		//regard as lack
+		seq1 := checkSeqMinNeg(layers, start+1, layerMap, lackFirst)
+		case1 := countNeg(&seq1)
+
+		//regard as inverse
+		layers[start] = -layers[start]
+		seq2 := checkSeqMinNeg(layers, start+1, layerMap, lackFirst)
+		case2 := countNeg(&seq2)
+
+		layers[start] = -layers[start]
+		delete(layerMap, layers[start])
+
+		if lackFirst && (case1 <= case2) || lackFirst && (case1 < case2) { //lack first <=
+			return seq1
+		} else {
+			return seq2
+		}
+	}
+
+	if isLack(&layers, start) { //lack first
+		layerMap[layers[start]] = 1
+		return checkSeqMinNeg(layers, start+1, layerMap, lackFirst)
+	}
+	if isInverse(&layers, start) {
+		layerMap[layers[start]] = 1
+		layers[start] = -layers[start]
+		seq := checkSeqMinNeg(layers, start+1, layerMap, lackFirst)
+		layers[start] = -layers[start]
+		delete(layerMap, layers[start])
+		return seq
+	}
+	return
+}
+func repeatPattern(seq []int) (p [][]int) {
+	var repeatIdx []int
+	layerMap := make(map[int]int)
+	for idx, l := range seq {
+		if _, ok := layerMap[l]; ok {
+			repeatIdx = append(repeatIdx, idx)
+		} else {
+			layerMap[l] = 1
+		}
+	}
+	if len(repeatIdx) == 0 {
+		return nil
+	} else {
+		for _, val := range repeatIdx {
+			if val == len(seq)-1 {
+				p = append(p, []int{seq[val-1], seq[val]})
+			}
+			if val+1 <= len(seq)-1 {
+				p = append(p, []int{seq[val-1], seq[val], seq[val+1]})
+			}
+		}
+		return p
+	}
+}
+func countNeg(seq *[]int) (count int) {
+	for _, val := range *seq {
+		if val < 0 {
+			count++
+		}
+	}
+	return
+}
+func markRepeat(seq []int, pattern [][]int) {
+	for idx := 1; idx < len(seq); idx++ {
+		for _, p := range pattern {
+			if seq[idx] != p[1] {
+				continue
+			} else {
+				if len(p) == 2 && idx == len(seq)-1 && seq[idx-1] == p[0] {
+					seq[idx] = -seq[idx]
+				}
+				if len(p) == 3 && idx+1 <= len(seq)-1 && seq[idx-1] == p[0] && seq[idx+1] == p[2] {
+					seq[idx] = -seq[idx]
+				}
+			}
+		}
+	}
+}
 func isNormal(layers *[]int, idx int) (ok bool) {
 	if idx <= len(*layers)-1 && idx-1 >= 0 {
-		return prePos(layers, idx)+1 == (*layers)[idx]
+		return lastPositive(layers, idx)+1 == (*layers)[idx]
 	}
 	if idx >= 1 && idx+1 <= len(*layers)-1 {
 		return (*layers)[idx]+1 == (*layers)[idx+1]
@@ -129,9 +293,11 @@ func isNormal(layers *[]int, idx int) (ok bool) {
 	return
 }
 func isLack(layers *[]int, idx int) (ok bool) {
-	//has gap
-	if idx <= len(*layers)-1 && idx-1 >= 1 {
-		return (*layers)[idx] > prePos(layers, idx)+1
+	if idx == len(*layers)-1 {
+		return (*layers)[idx] > lastPositive(layers, idx)+1
+	}
+	if idx+1 <= len(*layers)-1 && idx-1 >= 1 {
+		return (*layers)[idx] > lastPositive(layers, idx)+1 && (*layers)[idx+1] > (*layers)[idx]
 	}
 	return
 }
@@ -142,10 +308,9 @@ func isInverse(layers *[]int, idx int) (ok bool) {
 			return true
 		}
 	}
-
 	//case 2: drill bottom -> bigger 😄  go bottom
 	if idx == len(*layers)-1 && idx-1 >= 1 {
-		if prePos(layers, idx) > (*layers)[idx] {
+		if lastPositive(layers, idx) > (*layers)[idx] {
 			return true
 		}
 	}
@@ -155,18 +320,19 @@ func isInverse(layers *[]int, idx int) (ok bool) {
 	//case 5: drill middle -> smaller 😄 smaller  go up
 	if idx-1 >= 1 && idx+1 < len(*layers) {
 
-		if prePos(layers, idx) > (*layers)[idx] {
+		if lastPositive(layers, idx) > (*layers)[idx] {
 			return true
 		}
 
-		if prePos(layers, idx)+1 < (*layers)[idx] && (*layers)[idx] > (*layers)[idx+1] {
+		if lastPositive(layers, idx)+1 < (*layers)[idx] &&
+			(*layers)[idx] > (*layers)[idx+1] {
 			return true
 		}
 	}
 
 	return false
 }
-func prePos(layers *[]int, idx int) (layer int) {
+func lastPositive(layers *[]int, idx int) (layer int) {
 	for {
 		if idx-1 == 0 {
 			break
@@ -178,34 +344,4 @@ func prePos(layers *[]int, idx int) (layer int) {
 		}
 	}
 	return 0
-}
-func CheckSeq(layers *[]int) {
-	for _, layer := range *layers {
-		if layer < 0 {
-			return
-		}
-	}
-	//mark inverse and repeat
-	var layerMap map[int]int = make(map[int]int)
-	for i := 1; i < len(*layers); i++ {
-		if isNormal(layers, i) { //normal first
-			layerMap[(*layers)[i]] = 1
-			continue
-		}
-		if isLack(layers, i) { //lack first
-			layerMap[(*layers)[i]] = 1
-			continue
-		}
-		if isInverse(layers, i) {
-			(*layers)[i] = -(*layers)[i]
-			layerMap[(*layers)[i]] = 1
-			continue
-		}
-		if _, ok := layerMap[(*layers)[i]]; ok {
-			(*layers)[i] = -(*layers)[i]
-		}
-	}
-}
-func addLayerForUnify(layers *[]int, layer int) {
-	*layers = append(*layers, layer)
 }

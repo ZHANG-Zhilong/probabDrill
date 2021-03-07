@@ -287,4 +287,62 @@ func printInts(s []int) () {
 	}
 	fmt.Print("]\n")
 }
-
+func (drill Drill) HasRepeatLayers() bool {
+	seq := drill.Layers
+	layerMap := make(map[int]int)
+	for _, l := range seq {
+		if _, ok := layerMap[l]; ok {
+			return true
+		} else {
+			layerMap[l] = 1
+		}
+	}
+	return false
+}
+func (drill Drill) StdSeq(stdSeq []int) Drill {
+	var (
+		seq []int     = []int{0}
+		h   []float64 = []float64{drill.Z}
+	)
+	layers := drill.Layers
+	LayerFloorHeights := drill.LayerFloorHeights
+	var idx1, idx2 int = 1, 1
+	for idx2 < len(stdSeq) {
+		if layers[idx1] == stdSeq[idx2] {
+			h = append(h, LayerFloorHeights[idx1])
+			seq = append(seq, layers[idx1])
+			idx1++
+			idx2++
+		} else {
+			h = append(h, LayerFloorHeights[idx1])
+			seq = append(seq, stdSeq[idx2])
+			idx2++
+		}
+	}
+	drill.Layers = seq
+	drill.LayerFloorHeights = h
+	return drill
+}
+func (drill Drill) UnStdSeq() Drill {
+	var (
+		seq []int     = []int{0}
+		h   []float64 = []float64{drill.Z}
+	)
+	if len(drill.Layers) < 2 {
+		log.SetFlags(log.Lshortfile)
+		log.Fatal("error")
+	}
+	for idx := 1; idx < len(drill.LayerFloorHeights); idx++ {
+		if drill.LayerFloorHeights[idx] == drill.LayerFloorHeights[idx-1] {
+			idx++
+			continue
+		} else {
+			seq = append(seq, drill.Layers[idx])
+			h = append(h, drill.LayerFloorHeights[idx])
+			idx++
+		}
+	}
+	drill.Layers = seq
+	drill.LayerFloorHeights = h
+	return drill
+}
