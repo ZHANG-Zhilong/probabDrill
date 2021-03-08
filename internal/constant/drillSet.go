@@ -76,7 +76,7 @@ func init2() {
 
 				//add ground layers, initial value.
 				d.Layers = append(d.Layers, 0)
-				d.LayerFloorHeights = append(d.LayerFloorHeights, d.Z)
+				d.LayerHeights = append(d.LayerHeights, d.Z)
 
 				drills = append(drills, d)
 				drillMap[d.Name] = len(drills) - 1
@@ -98,7 +98,7 @@ func init2() {
 			if idx, ok := drillMap[temp[0]]; ok {
 				drills[idx].Layers = append(drills[idx].Layers, seq)
 				depth, _ := strconv.ParseFloat(temp[2], 64)
-				drills[idx].LayerFloorHeights = append(drills[idx].LayerFloorHeights, drills[idx].Z-depth)
+				drills[idx].LayerHeights = append(drills[idx].LayerHeights, drills[idx].Z-depth)
 			}
 		}
 

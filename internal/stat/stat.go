@@ -7,19 +7,19 @@ import (
 	"probabDrill/internal/entity"
 )
 
-func ProbLayers(drills *[]entity.Drill) (probsVec *mat.VecDense) {
-	probsVec = mat.NewVecDense(int(constant.StdLen), nil)
+func ProbLayers(drills *[]entity.Drill) (probsVec *mat.Dense) {
+	probsVec = mat.NewDense(1, int(constant.StdLen), nil)
 	for layer := 0; layer < int(constant.StdLen); layer++ {
 		prob := probLayer(drills, int(layer))
-		probsVec.SetVec(layer, prob)
+		probsVec.Set(0, layer, prob)
 	}
 	return probsVec
 }
-func ProbBlocks(drills *[]entity.Drill, blocksHeights *[]float64) (probsVec *mat.VecDense) {
-	probsVec = mat.NewVecDense(len(*blocksHeights), nil)
+func ProbBlocks(drills *[]entity.Drill, blocksHeights *[]float64) (probsVec *mat.Dense) {
+	probsVec = mat.NewDense(len(*blocksHeights), 1, nil)
 	for idx := 1; idx < len(*blocksHeights); idx++ {
 		prob := probBlock(drills, (*blocksHeights)[idx-1], (*blocksHeights)[idx])
-		probsVec.SetVec(idx, prob)
+		probsVec.Set(idx, 0, prob)
 	}
 	return
 }
@@ -41,6 +41,51 @@ func ProbBLs(drillsPtr *[]entity.Drill, blocksPtr *[]float64) (probMat *mat.Dens
 	}
 	return
 }
+func bayesLBs(drill entity.Drill, nearDrills *[]entity.Drill) () {
+
+}
+
+func ProbLayersW(drills *[]entity.Drill) (probsVec *mat.Dense) {
+	probsVec = mat.NewDense(1, int(constant.StdLen), nil)
+	for layer := 0; layer < int(constant.StdLen); layer++ {
+		prob := probLayerW(drills, int(layer))
+		probsVec.Set(0, layer, prob)
+	}
+	return probsVec
+}
+func ProbBlocksW(drills *[]entity.Drill, blocksHeights *[]float64) (probsVec *mat.Dense) {
+	probsVec = mat.NewDense(len(*blocksHeights), 1, nil)
+	for idx := 1; idx < len(*blocksHeights); idx++ {
+		prob := probBlockW(drills, (*blocksHeights)[idx-1], (*blocksHeights)[idx])
+		probsVec.Set(idx, 0, prob)
+	}
+	return
+}
+func probLayerW(drills *[]entity.Drill, layer int) (prob float64) {
+	log.SetFlags(log.Lshortfile)
+	if len(*drills) == 0 {
+		log.Fatal("error")
+	}
+	var has float64
+	for _, d := range *drills {
+		if d.HasLayer(layer) > 0 {
+			has += 1.0 * d.GetWeight()
+		}
+	}
+	return has
+}
+func probBlockW(drills *[]entity.Drill, blockCeil, blockFloor float64) (prob float64) {
+	if len(*drills) < 1 || blockCeil <= blockFloor {
+		log.Fatal("error")
+		return
+	}
+	for _, d := range *drills {
+		if d.HasBlock(blockCeil, blockFloor) {
+			prob += d.GetWeight()
+		}
+	}
+	return prob
+}
 
 func probLayer(drills *[]entity.Drill, layer int) (prob float64) {
 	log.SetFlags(log.Lshortfile)
@@ -51,7 +96,7 @@ func probLayer(drills *[]entity.Drill, layer int) (prob float64) {
 	total = float64(len(*drills))
 	for _, d := range *drills {
 		if d.HasLayer(layer) > 0 {
-			has++
+			has += 1.0
 		}
 	}
 	return has / total

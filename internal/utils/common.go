@@ -114,7 +114,6 @@ func UnifyDrillsStrata(drills *[]entity.Drill,
 	}
 	return stdDrills
 }
-
 func getUnifiedSeq(seq1, seq2 []int, check func([]int) []int) (seq []int) {
 	idx1, idx2 := 1, 1
 	seq = []int{0}

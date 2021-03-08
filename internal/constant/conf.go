@@ -6,7 +6,7 @@ const OffX float64 = -3592727.0
 const OffY float64 = -499523.0
 const ScaleXY float64 = 1
 const ScaleZ float64 = 1
-const StdLen int = 38  //len of std layer num
+const StdLen int = 38    //len of std layer num
 const RadiusIn int = 3   //how many real drills in search radius
 const IdwPow float64 = 2 //power of inverse weighting interpolation method
 
@@ -14,6 +14,12 @@ const Layer string = "/Users/zhangzhilong/go/src/probabDrill/assets/layer_info.d
 const Basic string = "/Users/zhangzhilong/go/src/probabDrill/assets/basic_info.dat"
 const Boundary string = "/Users/zhangzhilong/go/src/probabDrill/assets/boundary_info.dat"
 const StdLayer string = "/Users/zhangzhilong/go/src/probabDrill/assets/std_layer_info.dat"
+
+const DrillWidth int = 14
+const CanvasWidth int = 1400
+const CanvasHeight int = 700
+const CanvasMinThickness int = 2
+const CanvasOffsetY int = 15
 
 //const Basic string = "C:/Users/张志龙/go/src/probabDrill/assets/basic_info.dat"
 //const Layer string = "C:/Users/张志龙/go/src/probabDrill/assets/layer_info.dat"

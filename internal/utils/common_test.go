@@ -43,16 +43,16 @@ func TestCheckSeq(t *testing.T) {
 
 func TestUnifyStratum(t *testing.T) {
 	drill1 := entity.Drill{
-		Layers:            []int{0, 1, 2, 3, 4},
-		LayerFloorHeights: []float64{0, -1, -2, -3, -4},
+		Layers:       []int{0, 1, 2, 3, 4},
+		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
 	drill2 := entity.Drill{
-		Layers:            []int{0, 1, 3, 2, 4},
-		LayerFloorHeights: []float64{0, -1, -2, -3, -4},
+		Layers:       []int{0, 1, 3, 2, 4},
+		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
 	drill3 := entity.Drill{
-		Layers:            []int{0, 1, 2, 3, 4},
-		LayerFloorHeights: []float64{0, -1, -2, -3, -4},
+		Layers:       []int{0, 1, 2, 3, 4},
+		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
 	drills1 := []entity.Drill{drill1, drill2, drill3}
 	drills1 = UnifyDrillsStrata(&drills1, CheckSeqZiChun)
@@ -63,16 +63,16 @@ func TestUnifyStratum(t *testing.T) {
 	DisplayDrills(drills1)
 
 	drill4 := entity.Drill{
-		Layers:            []int{0, 1, 2, 3, 4},
-		LayerFloorHeights: []float64{0, -1, -2, -3, -4},
+		Layers:       []int{0, 1, 2, 3, 4},
+		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
 	drill5 := entity.Drill{
-		Layers:            []int{0, 1, 2, 3, 2, 4},
-		LayerFloorHeights: []float64{0, -1, -2, -3, -4, -5},
+		Layers:       []int{0, 1, 2, 3, 2, 4},
+		LayerHeights: []float64{0, -1, -2, -3, -4, -5},
 	}
 	drill6 := entity.Drill{
-		Layers:            []int{0, 1, 3, 2, 4},
-		LayerFloorHeights: []float64{0, -1, -2, -3, -4},
+		Layers:       []int{0, 1, 3, 2, 4},
+		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
 	drills2 := []entity.Drill{drill4, drill5, drill6}
 	drills2 = UnifyDrillsStrata(&drills2, CheckSeqZiChun)

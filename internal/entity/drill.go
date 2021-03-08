@@ -12,12 +12,12 @@ type Layer_t int
 
 //Drill data
 type Drill struct {
-	Name              string
-	X, Y, Z           float64
-	length            float64
-	Layers            []int     //layers' seq id.
-	LayerFloorHeights []float64 //layer's bottom height.
-	weight            float64
+	Name         string
+	X, Y, Z      float64
+	length       float64
+	Layers       []int     //layers' seq id.
+	LayerHeights []float64 //layer's bottom height.
+	weight       float64
 }
 
 func (drill Drill) Print() {
@@ -28,27 +28,27 @@ func (drill Drill) Print() {
 	printInts(drill.Layers)
 
 	fmt.Print("Heights:")
-	printFloat64s(drill.LayerFloorHeights)
+	printFloat64s(drill.LayerHeights)
 	fmt.Printf("Weights:%.4f\n\n", drill.weight)
 }
 
 func (drill Drill) MakeDrill(name string, x, y, z float64) Drill {
 	return Drill{
-		Name:              name,
-		X:                 x,
-		Y:                 y,
-		Z:                 z,
-		Layers:            []int{Ground},
-		LayerFloorHeights: []float64{z},
+		Name:         name,
+		X:            x,
+		Y:            y,
+		Z:            z,
+		Layers:       []int{Ground},
+		LayerHeights: []float64{z},
 	}
 }
 func (drill *Drill) AddLayer(layer int, layerDepthHeight float64) {
 	log.SetFlags(log.Lshortfile)
 	drill.Layers = append(drill.Layers, layer)
-	if layerDepthHeight > drill.LayerFloorHeights[len(drill.LayerFloorHeights)-1] {
+	if layerDepthHeight > drill.LayerHeights[len(drill.LayerHeights)-1] {
 		log.Fatal("error")
 	}
-	drill.LayerFloorHeights = append(drill.LayerFloorHeights, layerDepthHeight)
+	drill.LayerHeights = append(drill.LayerHeights, layerDepthHeight)
 }
 
 // getter and setter
@@ -59,19 +59,24 @@ func (drill *Drill) SetWeight(weight float64) {
 	drill.weight = weight
 }
 func (drill Drill) GetWeight() float64 {
+	if drill.weight <= 0.001 || math.IsInf(drill.weight, 10) || math.IsNaN(drill.weight) {
+		log.SetFlags(log.Lshortfile)
+		drill.Print()
+		log.Fatal("error")
+	}
 	return drill.weight
 }
 func (drill Drill) GetBottomHeightByLayer(layer int) (height []float64) {
 	for idx := 0; idx < len(drill.Layers); idx++ {
 		if layer == drill.Layers[idx] {
-			height = append(height, drill.LayerFloorHeights[idx])
+			height = append(height, drill.LayerHeights[idx])
 		}
 	}
 	return
 }
 func (drill *Drill) GetLength() (length float64) {
 	if drill.length == 0.0 {
-		drill.length = drill.Z - drill.LayerFloorHeights[len(drill.LayerFloorHeights)-1]
+		drill.length = drill.Z - drill.LayerHeights[len(drill.LayerHeights)-1]
 	}
 	return drill.length
 }
@@ -86,12 +91,12 @@ func (drill Drill) IsValid() (valid bool) {
 	if drill.GetLength() != drill.Z-drill.GetBottomHeight() {
 		return false
 	}
-	if len(drill.LayerFloorHeights) != len(drill.Layers) {
+	if len(drill.LayerHeights) != len(drill.Layers) {
 		return false
 	}
-	if len(drill.LayerFloorHeights) > 1 {
-		for idx := 1; idx < len(drill.LayerFloorHeights); idx++ {
-			if drill.LayerFloorHeights[idx]-drill.LayerFloorHeights[idx-1] > 0 {
+	if len(drill.LayerHeights) > 1 {
+		for idx := 1; idx < len(drill.LayerHeights); idx++ {
+			if drill.LayerHeights[idx]-drill.LayerHeights[idx-1] > 0 {
 				return false
 			}
 		}
@@ -127,29 +132,29 @@ func (drill *Drill) Merge() {
 	)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	if drill.LayerFloorHeights[len(drill.LayerFloorHeights)-1] != drill.GetBottomHeight() {
-		log.Fatal("error: drill.LayerFloorHeights[len(drill.LayerFloorHeights)-1] != drill.GetBottomHeight()")
+	if drill.LayerHeights[len(drill.LayerHeights)-1] != drill.GetBottomHeight() {
+		log.Fatal("error: drill.LayerHeights[len(drill.LayerHeights)-1] != drill.GetBottomHeight()")
 	}
-	if len(drill.LayerFloorHeights) != len(drill.Layers) {
+	if len(drill.LayerHeights) != len(drill.Layers) {
 		drill.Print()
-		log.Printf("%d, %d\n", len(drill.LayerFloorHeights), len(drill.Layers))
-		log.Fatal("error: len(drill.LayerFloorHeights) != len(drill.Layers)")
+		log.Printf("%d, %d\n", len(drill.LayerHeights), len(drill.Layers))
+		log.Fatal("error: len(drill.LayerHeights) != len(drill.Layers)")
 	}
 
 	layers = append(layers, drill.Layers[0])
-	heights = append(heights, drill.LayerFloorHeights[0])
+	heights = append(heights, drill.LayerHeights[0])
 
 	//37 84 149
-	for idx := 1; idx < len(drill.LayerFloorHeights); idx++ {
+	for idx := 1; idx < len(drill.LayerHeights); idx++ {
 		if layers[len(layers)-1] == drill.Layers[idx] {
-			heights[len(heights)-1] = drill.LayerFloorHeights[idx]
+			heights[len(heights)-1] = drill.LayerHeights[idx]
 		} else {
 			layers = append(layers, drill.Layers[idx])
-			heights = append(heights, drill.LayerFloorHeights[idx])
+			heights = append(heights, drill.LayerHeights[idx])
 		}
 	}
 	drill.Layers = layers
-	drill.LayerFloorHeights = heights
+	drill.LayerHeights = heights
 }
 func (drill Drill) DistanceBetween(drill2 Drill) (dist float64) {
 	x1, y1, x2, y2 := drill.X, drill.Y, drill2.X, drill2.Y
@@ -196,33 +201,33 @@ func (drill Drill) Explode(blocks []float64) (scattered Drill) {
 			drillLayers = append(drillLayers, seq)
 		}
 	}
-	scattered.LayerFloorHeights = drillBlocks
+	scattered.LayerHeights = drillBlocks
 	scattered.Layers = drillLayers
 	scattered.SetWeight(drill.GetWeight())
 	return
 }
 func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 	// drill top >=ceil >= floor >= drill bottom
-	if floor > drill.Z || ceil < drill.LayerFloorHeights[len(drill.LayerFloorHeights)-1] {
+	if floor > drill.Z || ceil < drill.LayerHeights[len(drill.LayerHeights)-1] {
 		return
 	}
 	//case1: 1 or less layer in block
-	for idx := 1; idx < len(drill.LayerFloorHeights); idx++ {
-		if drill.LayerFloorHeights[idx] <= floor &&
-			drill.LayerFloorHeights[idx-1] >= ceil && idx < len(drill.Layers) {
+	for idx := 1; idx < len(drill.LayerHeights); idx++ {
+		if drill.LayerHeights[idx] <= floor &&
+			drill.LayerHeights[idx-1] >= ceil && idx < len(drill.Layers) {
 			return drill.Layers[idx], true
 		}
 	}
 
 	//case2: 2 layers in block
-	if ceil <= drill.Z && floor >= drill.LayerFloorHeights[len(drill.LayerFloorHeights)-1] {
+	if ceil <= drill.Z && floor >= drill.LayerHeights[len(drill.LayerHeights)-1] {
 		//here suppose that resolution z < min layer thick,
 		//so there are 2 layers in the block at most.
 		var bidx []int
 		var thick []float64
 
 		//layer surface in block.
-		for idx, h := range drill.LayerFloorHeights {
+		for idx, h := range drill.LayerHeights {
 			if h < ceil && h > floor {
 				bidx = append(bidx, idx)
 			}
@@ -233,15 +238,15 @@ func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 		}
 
 		l := len(bidx)
-		thick = append(thick, ceil-drill.LayerFloorHeights[bidx[0]])
+		thick = append(thick, ceil-drill.LayerHeights[bidx[0]])
 		for idx := 1; idx < l; idx++ {
 			thick = append(thick,
-				drill.LayerFloorHeights[bidx[idx]]-drill.LayerFloorHeights[bidx[idx-1]])
+				drill.LayerHeights[bidx[idx]]-drill.LayerHeights[bidx[idx-1]])
 		}
 
 		//!!
 		bidx = append(bidx, bidx[l-1]+1)
-		thick = append(thick, drill.LayerFloorHeights[bidx[l-1]]-floor)
+		thick = append(thick, drill.LayerHeights[bidx[l-1]]-floor)
 		if len(bidx) > 2 {
 			log.SetFlags(log.Lshortfile | log.LstdFlags)
 			log.Println("Warning, the resolution z is too large!")
@@ -305,22 +310,26 @@ func (drill Drill) StdSeq(stdSeq []int) Drill {
 		h   []float64 = []float64{drill.Z}
 	)
 	layers := drill.Layers
-	LayerFloorHeights := drill.LayerFloorHeights
+	LayerFloorHeights := drill.LayerHeights
 	var idx1, idx2 int = 1, 1
-	for idx2 < len(stdSeq) {
+	for idx2 < len(stdSeq) && idx1 < len(layers) {
 		if layers[idx1] == stdSeq[idx2] {
 			h = append(h, LayerFloorHeights[idx1])
 			seq = append(seq, layers[idx1])
 			idx1++
 			idx2++
 		} else {
-			h = append(h, LayerFloorHeights[idx1])
+			h = append(h, LayerFloorHeights[idx1-1])
 			seq = append(seq, stdSeq[idx2])
 			idx2++
 		}
 	}
+	for ; idx2 < len(stdSeq); idx2++ {
+		h = append(h, LayerFloorHeights[len(LayerFloorHeights)-1])
+		seq = append(seq, stdSeq[idx2])
+	}
 	drill.Layers = seq
-	drill.LayerFloorHeights = h
+	drill.LayerHeights = h
 	return drill
 }
 func (drill Drill) UnStdSeq() Drill {
@@ -332,17 +341,33 @@ func (drill Drill) UnStdSeq() Drill {
 		log.SetFlags(log.Lshortfile)
 		log.Fatal("error")
 	}
-	for idx := 1; idx < len(drill.LayerFloorHeights); idx++ {
-		if drill.LayerFloorHeights[idx] == drill.LayerFloorHeights[idx-1] {
+	for idx := 1; idx < len(drill.LayerHeights); idx++ {
+		if drill.LayerHeights[idx] == drill.LayerHeights[idx-1] {
 			idx++
 			continue
 		} else {
 			seq = append(seq, drill.Layers[idx])
-			h = append(h, drill.LayerFloorHeights[idx])
+			h = append(h, drill.LayerHeights[idx])
 			idx++
 		}
 	}
 	drill.Layers = seq
-	drill.LayerFloorHeights = h
+	drill.LayerHeights = h
 	return drill
+}
+func (drill Drill) Round() (drill2 Drill) {
+	drill2 = drill
+	drill2.X = math.Round(drill.X)
+	drill2.Y = math.Round(drill.Y)
+	drill2.Z = math.Round(drill.Z)
+	for idx, h := range drill2.LayerHeights {
+		drill2.LayerHeights[idx] = math.Round(h)
+	}
+	return drill2
+}
+func (drill Drill) RoundDrills(drills []Drill) (rDrills []Drill) {
+	for _, d := range drills {
+		rDrills = append(rDrills, d.Round())
+	}
+	return rDrills
 }
