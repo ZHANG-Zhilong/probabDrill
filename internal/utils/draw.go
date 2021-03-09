@@ -30,9 +30,10 @@ func drawDrill(canvas *svg.SVG, drill entity.Drill, x int, scaley float64) {
 		return
 	}
 	y0 := getMappedY(drill, drill.LayerHeights[0], scaley)
-	canvas.Rect(x-constant.DrillWidth/2, y0, constant.DrillWidth, int(drill.GetLength()*scaley),
+	yb := getMappedY(drill, drill.LayerHeights[len(drill.LayerHeights)-1], scaley)
+	canvas.Rect(x-constant.DrillWidth/2, y0, constant.DrillWidth, yb-y0,
 		"fill=\"none\" stroke=\"black\" stroke-width=\"1\"")
-	canvas.Text(x, getMappedY(drill, drill.GetBottomHeight(), scaley)+15, drill.Name,
+	canvas.Text(x, yb+15, drill.Name,
 		"text-anchor:middle;font-size:7px;fill:black")
 
 	for idx := 1; idx < len(drill.Layers); idx++ {
@@ -49,10 +50,10 @@ func drawDrill(canvas *svg.SVG, drill entity.Drill, x int, scaley float64) {
 			"stroke-width=\"1\" stroke=\"red\"")
 
 		if lasty > 0 && y-lasty < 5 {
-			canvas.Text(x, y+18, strconv.FormatInt(int64(drill.Layers[idx]), 10),
+			canvas.Text(x, y+15, strconv.FormatInt(int64(drill.Layers[idx]), 10),
 				"text-anchor:start;font-size:1px;fill:black")
 		} else {
-			canvas.Text(x, y+10, strconv.FormatInt(int64(drill.Layers[idx]), 10),
+			canvas.Text(x, y+5, strconv.FormatInt(int64(drill.Layers[idx]), 10),
 				"text-anchor:middle;font-size:1px;fill:black")
 		}
 	}

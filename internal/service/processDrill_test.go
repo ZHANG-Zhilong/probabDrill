@@ -123,12 +123,12 @@ func TestGenerateVirtualDrill3(t *testing.T) {
 			drills = append(drills, drill)
 		}
 	}
-	//var virtualDrills []entity.Drill
-	//for idx := 1; idx < len(drills); idx++ {
-	//	vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 3)
-	//	virtualDrills = append(virtualDrills, vdrills...)
-	//}
-	utils.DrawDrills(drills)
+	var virtualDrills []entity.Drill
+	for idx := 1; idx < len(drills); idx++ {
+		vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 3)
+		virtualDrills = append(virtualDrills, vdrills...)
+	}
+	utils.DrawDrills(virtualDrills)
 	//utils.DisplayDrills(virtualDrills)
 }
 func TestGetVirtualDrillsBetween(t *testing.T) {

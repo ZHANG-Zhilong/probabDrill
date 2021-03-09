@@ -376,8 +376,8 @@ func GetVirtualDrillsBetween(drill1, drill2 entity.Drill, n int) (virtualDrills 
 	x2, y2 := drill2.X, drill2.Y
 	vertices := utils.SplitSegment(x1, y1, x2, y2, n)
 	for idx := 1; idx < len(vertices); idx += 2 {
-		//virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, vertices[idx-1], vertices[idx], blocks))
-		virtualDrills = append(virtualDrills, generateVirtualDrill2(&drillSet, vertices[idx-1], vertices[idx], &blocks))
+		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, vertices[idx-1], vertices[idx], blocks))
+		//virtualDrills = append(virtualDrills, generateVirtualDrill2(&drillSet, vertices[idx-1], vertices[idx], &blocks))
 	}
 	return
 }

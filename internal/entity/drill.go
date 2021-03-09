@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"runtime/debug"
 )
 
 const Ground int = 0
@@ -62,6 +63,7 @@ func (drill Drill) GetWeight() float64 {
 	if drill.weight <= 0.001 || math.IsInf(drill.weight, 10) || math.IsNaN(drill.weight) {
 		log.SetFlags(log.Lshortfile)
 		drill.Print()
+		debug.PrintStack()
 		log.Fatal("error")
 	}
 	return drill.weight
@@ -75,7 +77,7 @@ func (drill Drill) GetBottomHeightByLayer(layer int) (height []float64) {
 	return
 }
 func (drill *Drill) GetLength() (length float64) {
-	if drill.length == 0.0 {
+	if drill.length == 0.0 && drill.Z > drill.LayerHeights[len(drill.LayerHeights)-1] {
 		drill.length = drill.Z - drill.LayerHeights[len(drill.LayerHeights)-1]
 	}
 	return drill.length
@@ -273,7 +275,7 @@ func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 	}
 
 	//case 3.2
-	if ceil > drill.GetBottomHeight() && floor < drill.GetWeight() {
+	if ceil > drill.GetBottomHeight() && floor < drill.GetBottomHeight() {
 		return drill.GetLayerSeq(ceil, drill.GetBottomHeight())
 	}
 	return -1, false
