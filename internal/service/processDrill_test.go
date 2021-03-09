@@ -75,8 +75,8 @@ func TestGenerateVirtualDrill(t *testing.T) {
 	log.Println("real drill")
 	drill.Print()
 
-	blocks := MakeBlocks(constant.DrillSet(), constant.BlockResZ)
-	virtualDrill := generateVirtualDrill(constant.DrillSet(), drill.X+1, drill.Y+1, blocks)
+	drillSet := constant.DrillSet()
+	virtualDrill := GenVDrillM1(&drillSet, drill.X+1, drill.Y+1)
 
 	log.Println("virtual drill")
 	virtualDrill.Print()
@@ -108,14 +108,14 @@ func TestGenerateVirtualDrill2(t *testing.T) {
 	fmt.Println(blocks)
 	var virtualDrills []entity.Drill
 	for x := 0.0; x < 1; x += 0.1 {
-		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, 0.5, blocks))
+		virtualDrills = append(virtualDrills, GenVDrillM1(&drillSet, x, 0.5))
 	}
 	for _, v := range virtualDrills {
 		v.Print()
 	}
-	utils.DrawDrills(virtualDrills)
+	utils.DrawDrills(&virtualDrills, "m1.svg")
 }
-func TestGenerateVirtualDrill3(t *testing.T) {
+func TestGenVDrillM1(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
 	var drills []entity.Drill
 	for _, name := range drillNames {
@@ -125,19 +125,33 @@ func TestGenerateVirtualDrill3(t *testing.T) {
 	}
 	var virtualDrills []entity.Drill
 	for idx := 1; idx < len(drills); idx++ {
-		vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 3)
+		vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 3, GenVDrillM1)
 		virtualDrills = append(virtualDrills, vdrills...)
 	}
-	utils.DrawDrills(virtualDrills)
-	//utils.DisplayDrills(virtualDrills)
+	utils.DrawDrills(&virtualDrills, "./m12.svg")
+}
+func TestGenVDrillIDW(t *testing.T) {
+	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
+	var drills []entity.Drill
+	for _, name := range drillNames {
+		if drill, ok := constant.GetDrillByName(name); ok {
+			drills = append(drills, drill)
+		}
+	}
+	var virtualDrills []entity.Drill
+	for idx := 1; idx < len(drills); idx++ {
+		vdrills := GetVirtualDrillsBetween(drills[idx-1], drills[idx], 3, GenVDrillIDW)
+		virtualDrills = append(virtualDrills, vdrills...)
+	}
+	utils.DrawDrills(&virtualDrills, "./idw2.svg")
 }
 func TestGetVirtualDrillsBetween(t *testing.T) {
 	drill1 := constant.DrillSet()[0]
 	drill2 := constant.DrillSet()[1]
 	//vdrills := GetVirtualDrillsBetween(drill1, drill2, 5)
-	vdrills := GetVirtualDrillsBetween(drill1, drill2, 5)
+	vdrills := GetVirtualDrillsBetween(drill1, drill2, 5, GenVDrillM1)
 	fmt.Println(len(vdrills))
-	utils.DrawDrills(vdrills)
+	utils.DrawDrills(&vdrills, "./between.svg")
 }
 func TestGenerateVirtualDrill4(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
@@ -147,7 +161,7 @@ func TestGenerateVirtualDrill4(t *testing.T) {
 			drills = append(drills, drill)
 		}
 	}
-	utils.DrawDrills(drills)
+	utils.DrawDrills(&drills, "./realDrill.svg")
 }
 func TestStatLayer(t *testing.T) {
 	//log.SetFlags(log.Lshortfile)
@@ -160,19 +174,20 @@ func TestStatLayer(t *testing.T) {
 func TestStats(t *testing.T) {
 	var virtualDrill entity.Drill
 	log.SetFlags(log.Lshortfile)
-	virtualDrill = virtualDrill.MakeDrill(constant.GenVirtualDrillName(), 5580, -15020, 0)
+	virtualDrill = virtualDrill.MakeDrill(constant.GenVDrillName(), 5580, -15020, 0)
 	blocks := MakeBlocks(constant.DrillSet(), constant.BlockResZ)
-	incidentDrills := obtainNearDrills(constant.DrillSet(), virtualDrill, constant.RadiusIn)
-	setClassicalIdwWeights(virtualDrill, incidentDrills)
-	setLengthAndZ(&virtualDrill, incidentDrills)
+	drillSet := constant.DrillSet()
+	nearDrills := obtainNearDrills(&drillSet, virtualDrill, constant.RadiusIn)
+	setClassicalIdwWeights(virtualDrill, *nearDrills)
+	setLengthAndZ(&virtualDrill, *nearDrills)
 	virtualDrill.LayerHeights = explodedHeights(blocks, virtualDrill.Z, virtualDrill.GetBottomHeight())
 
 	var probBlockWithWeights = make([]float64, len(blocks), len(blocks))
 	//var probBlocks = make([]float64, len(blocks), len(blocks))
 	//var probBlockGeneral = make([]float64, len(blocks), len(blocks))
 	for idx := 1; idx < len(blocks); idx++ {
-		probBlockWithWeights[idx] = utils.StatProbBlockWithWeight(incidentDrills, blocks[idx-1], blocks[idx])
-		//probBlocks[idx] = statProbBlock(incidentDrills, blocks[idx-1], blocks[idx])
+		probBlockWithWeights[idx] = utils.StatProbBlockWithWeight(*nearDrills, blocks[idx-1], blocks[idx])
+		//probBlocks[idx] = statProbBlock(nearDrills, blocks[idx-1], blocks[idx])
 		//probBlockGeneral[idx] = statProbBlock(constant.DrillSet(), blocks[idx-1], blocks[idx])
 	}
 	//log.Println("p(block)")
@@ -186,7 +201,7 @@ func TestStats(t *testing.T) {
 		var probBlockLayers = make([]float64, constant.StdLen, constant.StdLen)
 		var probLayerBlock2s = make([]float64, constant.StdLen, constant.StdLen)
 		for lidx := int(1); lidx < constant.StdLen; lidx++ {
-			probLayers[lidx] = utils.StatProbLayerWithWeight(incidentDrills, blocks[idx-1], blocks[idx], lidx)
+			probLayers[lidx] = utils.StatProbLayerWithWeight(*nearDrills, blocks[idx-1], blocks[idx], lidx)
 			probBlockLayers[lidx] = utils.StatProbBlockLayer(constant.DrillSet(), blocks[idx-1], blocks[idx], lidx)
 			if probBlockWithWeights[idx] >= 0.0000001 {
 				probLayerBlock2s[lidx] = probLayers[lidx] * probBlockLayers[lidx] / probBlockWithWeights[idx]
@@ -198,27 +213,29 @@ func TestProbLayerAndBlocksWithWeight(t *testing.T) {
 	blocks := MakeBlocks(constant.DrillSet(), constant.BlockResZ)
 	drills := constant.DrillSet()
 	drill0 := drills[0]
-	incidentDrills := obtainNearDrills(constant.DrillSet(), drill0, 50)
-	setClassicalIdwWeights(drill0, incidentDrills)
+	drillSet := constant.DrillSet()
+	nearDrills := obtainNearDrills(&drillSet, drill0, 50)
+	setClassicalIdwWeights(drill0, *nearDrills)
 	log.SetFlags(log.Lshortfile)
 	for idx := 1; idx < len(blocks); idx++ {
 		for layer := int(1); layer < constant.StdLen; layer++ {
 			ceil, floor := blocks[idx-1], blocks[idx]
-			prob1 := utils.StatProbBlockAndLayerWithWeight(incidentDrills, ceil, floor, layer)
+			prob1 := utils.StatProbBlockAndLayerWithWeight(*nearDrills, ceil, floor, layer)
 			prob2 := utils.StatProbBlockLayer(drills, ceil, floor, layer)
 			log.Printf("%f, %f\n", prob1, prob2)
 		}
 	}
 }
 func TestStatProbBlockWithWeight(t *testing.T) {
-	incidentDrillSet := obtainNearDrills(constant.DrillSet(), constant.DrillSet()[0], 3)
-	setClassicalIdwWeights(constant.DrillSet()[0], incidentDrillSet)
+	drillSet := constant.DrillSet()
+	nearDrills := obtainNearDrills(&drillSet, constant.DrillSet()[0], 3)
+	setClassicalIdwWeights(constant.DrillSet()[0], *nearDrills)
 	blocks := MakeBlocks(constant.DrillSet(), constant.BlockResZ)
-	for _, d := range incidentDrillSet {
+	for _, d := range *nearDrills {
 		d.Print()
 	}
 
-	probBlock := utils.StatProbBlockWithWeight(incidentDrillSet, blocks[1], blocks[2])
+	probBlock := utils.StatProbBlockWithWeight(*nearDrills, blocks[1], blocks[2])
 	fmt.Println(probBlock)
 
 }

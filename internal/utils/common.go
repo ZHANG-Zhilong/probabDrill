@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"probabDrill/internal/entity"
 )
@@ -76,10 +77,11 @@ func FindMaxFloat64s(float64s []float64) (idx int, val float64) {
 	}
 	return idx, val
 }
-func UnifyDrillsStrata(drills *[]entity.Drill,
-	check func([]int) []int) (stdDrills []entity.Drill) {
+func UnifyDrillsStrata(drills *[]entity.Drill, check func([]int) []int) *[]entity.Drill {
 	if len(*drills) < 2 {
-		return
+		log.SetFlags(log.Lshortfile)
+		log.Fatal("error")
+		return nil
 	}
 	var repeat, nonRepeat []entity.Drill
 	var ps [][]int
@@ -109,10 +111,11 @@ func UnifyDrillsStrata(drills *[]entity.Drill,
 			stdLayers = getUnifiedSeq(layers, stdLayers, check)
 		}
 	}
+	var stdDrills []entity.Drill
 	for _, d := range *drills {
 		stdDrills = append(stdDrills, d.StdSeq(stdLayers))
 	}
-	return stdDrills
+	return &stdDrills
 }
 func getUnifiedSeq(seq1, seq2 []int, check func([]int) []int) (seq []int) {
 	idx1, idx2 := 1, 1
@@ -343,4 +346,20 @@ func lastPositive(layers *[]int, idx int) (layer int) {
 		}
 	}
 	return 0
+}
+func GetLine(x1, y1, x2, y2, x float64) (y float64) {
+	log.SetFlags(log.Lshortfile)
+	if x2 == x1 {
+		log.Fatal("error")
+	}
+	y = (x-x1)*(y2-y1)/(x2-x1) + y1
+	return
+}
+func SplitSegment(x1, y1, x2, y2 float64, n int) (vertices []float64) {
+	step := (x2 - x1) / float64(n+1)
+	for x := x1 + step; math.Abs(x-x1) < math.Abs(x2-x1); x += step {
+		y := GetLine(x1, y1, x2, y2, x)
+		vertices = append(vertices, x, y)
+	}
+	return
 }

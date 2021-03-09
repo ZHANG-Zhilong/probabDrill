@@ -19,7 +19,7 @@ var (
 	drillId int
 )
 
-func GenVirtualDrillName() (name string) {
+func GenVDrillName() (name string) {
 	mu.Lock()
 	name = "virtual" + strconv.FormatInt(int64(drillId), 10)
 	drillId++

@@ -22,7 +22,6 @@ func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 	gridx, gridy := utils.GetGrids(px, py, l, r, t, b)
 	log.Println(gridx)
 	log.Println(gridy)
-	blocks := MakeBlocks(drillSet, constant.BlockResZ)
 	bx, by := constant.GetBoundary()
 	var in, out int
 	for idx := range gridx {
@@ -31,8 +30,8 @@ func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 			y := gridy[idy]
 			if utils.IsInPolygon(bx, by, x, y) {
 				in++
-				//virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
-				virtualDrills = append(virtualDrills, generateVirtualDrill2(&drillSet, x, y, &blocks))
+				//virtualDrills = append(virtualDrills, GenVDrillM1(drillSet, x, y, blocks))
+				virtualDrills = append(virtualDrills, GenVDrillM2(&drillSet, x, y))
 			} else {
 				out++
 			}
@@ -41,7 +40,7 @@ func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 	log.Println("drillIn:", in, " drillOut:", out)
 	for idx, _ := range bx {
 		x, y := bx[idx], by[idx]
-		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, x, y, blocks))
+		virtualDrills = append(virtualDrills, GenVDrillM1(&drillSet, x, y))
 	}
 	return
 }
@@ -71,18 +70,18 @@ func setLengthAndZ(drill *entity.Drill, incidentDrills []entity.Drill) {
 		log.Fatal("error")
 	}
 }
-func generateVirtualDrill(drillSet []entity.Drill, x, y float64, blocks []float64) (virtualDrill entity.Drill) {
+func GenVDrillM1(drillSet *[]entity.Drill, x, y float64) (virtualDrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
-	virtualDrill = virtualDrill.MakeDrill(constant.GenVirtualDrillName(), x, y, 0)
-	incidentDrills := obtainNearDrills(drillSet, virtualDrill, constant.RadiusIn)
-	for _, d := range incidentDrills {
+	virtualDrill = virtualDrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
+	nearDrills := obtainNearDrills(drillSet, virtualDrill, constant.RadiusIn)
+	for _, d := range *nearDrills {
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
 			return d
 		}
 	}
-	//log.Println(virtualDrill.Name)
-	setClassicalIdwWeights(virtualDrill, incidentDrills)
-	setLengthAndZ(&virtualDrill, incidentDrills)
+	setClassicalIdwWeights(virtualDrill, *nearDrills)
+	setLengthAndZ(&virtualDrill, *nearDrills)
+	blocks := MakeBlocks(*drillSet, 0.02)
 	virtualDrill.LayerHeights = explodedHeights(blocks, virtualDrill.Z, virtualDrill.GetBottomHeight())
 	//virtual(name, x, y, z, length, heights, weight)  还差 layers,
 
@@ -94,109 +93,57 @@ func generateVirtualDrill(drillSet []entity.Drill, x, y float64, blocks []float6
 		//p(layer|block0)
 		//bidx = 107
 		ceil, floor := blocks[bidx-1], blocks[bidx]
-		var probBlockWithWeight = utils.StatProbBlockWithWeight(incidentDrills, ceil, floor)
-		var probLayersWithWeight = make([]float64, constant.StdLen, constant.StdLen)
+		var probBlock = utils.StatProbBlockWithWeight(*nearDrills, ceil, floor)
+		//var probBlock = utils.StatProbBlock(*nearDrills, ceil, floor)
+		var probLayers = make([]float64, constant.StdLen, constant.StdLen)
 		var probBlockLayers = make([]float64, constant.StdLen, constant.StdLen)
 		var probLayerBlock2s = make([]float64, constant.StdLen, constant.StdLen)
 
 		for layerIdx := int(1); layerIdx < constant.StdLen; layerIdx++ { //layer[0] is ground.
 			//layerIdx = 26
-			probLayersWithWeight[layerIdx] = utils.StatProbLayerWithWeight(incidentDrills, ceil, floor, layerIdx)
-			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(drillSet, ceil, floor, layerIdx)
+			probLayers[layerIdx] = utils.StatProbLayerWithWeight(*nearDrills, ceil, floor, layerIdx)
+			//probLayers[layerIdx] = utils.StatProbLayer(*nearDrills, ceil, floor, layerIdx)
+			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(*drillSet, ceil, floor, layerIdx)
 
-			if probBlockWithWeight >= 0.0000001 {
-				probLayerBlock2s[layerIdx] = probBlockLayers[layerIdx] * probLayersWithWeight[layerIdx] / probBlockWithWeight
+			if probBlock >= 0.0000001 {
+				probLayerBlock2s[layerIdx] = probBlockLayers[layerIdx] * probLayers[layerIdx] / probBlock
 			}
-			a, b, c := probLayersWithWeight[layerIdx], probBlockLayers[layerIdx], probLayerBlock2s[layerIdx]
-			utils.Hole(a, b, c)
 		}
 		probLayerBlocks3s = append(probLayerBlocks3s, probLayerBlock2s)
 
-		//log.Printf("[%.2f, %.2f] ", ceil, floor)
-		//printFloat64s(probLayersWithWeight)
-		//printFloat64s(probBlockLayers)
-		//utils.PrintFloat64s(probLayerBlock2s)
-
-		//idx, val := findMaxFloat64s(probLayerBlock2s)
-		//log.Println(idx, val)
-		//fmt.Println("======")
 	}
-	//log.Println("info generate virtual drill.")
-	//fmt.Printf("name\tdist\tweight\n")
-	//for _, d := range incidentDrills {
-	//	fmt.Printf("%s\t%.2f\t%.2f\n", d.Name, d.DistanceBetween(virtualDrill), d.GetWeight())
-	//}
-	//fmt.Println("blocks, p(layer|block)")
-	//for idx := 1; idx < len(probLayerBlocks3s); idx++ {
-	//	fmt.Printf("[%.2f\t%.2f]", blocks[idx-1], blocks[idx])
-	//	utils.PrintFloat64s(probLayerBlocks3s[idx][1:])
-	//}
-	//log.Println("initial drill.")
-	//virtualDrill.Print()
 
 	for idx := 1; idx < len(virtualDrill.LayerHeights); idx++ {
 		ceil, floor := virtualDrill.LayerHeights[idx-1], virtualDrill.LayerHeights[idx]
 		bidx := blocksIndex(blocks, ceil, floor)
-		if bidx == -1 {
-			log.Printf("drill name: %s, idx:%d\n", virtualDrill.Name, idx)
-			log.Printf("ceil:%f, floor:%f\n", ceil, floor)
-			log.Println(virtualDrill.LayerHeights)
-			log.Fatalln(blocks)
-		}
 		probs := probLayerBlocks3s[bidx]
 		layer, prob := utils.FindMaxFloat64s(probs)
 		virtualDrill.Layers = append(virtualDrill.Layers, int(layer))
 		utils.Hole(prob)
-		//log.Println(bidx, ceil, floor, layer, prob)
-		//log.Println(probs)
 	}
-
-	//log.Println("before merged.")
-	//virtualDrill.Print()
 	virtualDrill.Merge()
-	//log.Println("after merged.")
-	//if !virtualDrill.IsValid() {
-	//	virtualDrill.Print()
-	//	log.Fatal("invalid drill")
-	//}
-	//virtualDrill.Print()
-
-	//log.Println("p(layers_j|block_i)")
-	//for i, p := range probLayerBlocks3s {
-	//	idx, val := findMaxFloat64s(p)
-	//	fmt.Printf("%d: ", i)
-	//	fmt.Printf("[%d, %.2f] ", idx, val)
-	//	printFloat64s(p)
-	//}
-
-	//log.Println("incident drills")
-	//for _, d := range incidentDrills {
-	//	d.Print()
-	//	//log.Printf("%+v", d)
-	//}
-	//log.Println(virtualDrill.Name)
-	//virtualDrill.Print()
 	return
 }
-func generateVirtualDrill2(drillSet *[]entity.Drill, x, y float64, blocks *[]float64) (vdrill entity.Drill) {
+func GenVDrillM2(drillSet *[]entity.Drill, x, y float64) (vdrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
-	vdrill = vdrill.MakeDrill(constant.GenVirtualDrillName(), x, y, 0)
-	nearDrills := obtainNearDrills(*drillSet, vdrill, constant.RadiusIn)
-	for _, d := range nearDrills {
+	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
+	nearDrills := obtainNearDrills(drillSet, vdrill, constant.RadiusIn)
+	for _, d := range *nearDrills {
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
 			return d
 		}
 	}
-	setClassicalIdwWeights(vdrill, nearDrills)
-	setLengthAndZ(&vdrill, nearDrills)
-	vdrill.LayerHeights = explodedHeights(*blocks, vdrill.Z, vdrill.GetBottomHeight())
+	setClassicalIdwWeights(vdrill, *nearDrills)
+	setLengthAndZ(&vdrill, *nearDrills)
+	blocks := MakeBlocks(*drillSet, constant.BlockResZ)
+	vdrill.LayerHeights = explodedHeights(blocks, vdrill.Z, vdrill.GetBottomHeight())
 	vdBlocks := vdrill.LayerHeights
 	//virtual(name, x, y, z, length, heights, weight)  还差 layers,
 
 	//p(layer|block)
-	var probBW *mat.Dense = stat.ProbBlocksW(&nearDrills, &vdBlocks)
-	var probLW *mat.Dense = stat.ProbLayersW(&nearDrills)
-	var probBLs *mat.Dense = stat.ProbBLs(drillSet, blocks)
+	var probBW *mat.Dense = stat.ProbBlocksW(nearDrills, &vdBlocks)
+	var probLW *mat.Dense = stat.ProbLayersW(nearDrills)
+	var probBLs *mat.Dense = stat.ProbBLs(drillSet, &blocks)
 	var probLBs mat.Dense
 
 	probBW.Apply(func(i, j int, val float64) float64 {
@@ -206,7 +153,7 @@ func generateVirtualDrill2(drillSet *[]entity.Drill, x, y float64, blocks *[]flo
 
 	for idx := 1; idx < len(vdrill.LayerHeights); idx++ {
 		ceil, floor := vdrill.LayerHeights[idx-1], vdrill.LayerHeights[idx]
-		bidx := blocksIndex(*blocks, ceil, floor)
+		bidx := blocksIndex(blocks, ceil, floor)
 		if bidx == -1 {
 			log.Printf("drill name: %s, idx:%d\n", vdrill.Name, idx)
 			log.Printf("ceil:%f, floor:%f\n", ceil, floor)
@@ -225,6 +172,37 @@ func generateVirtualDrill2(drillSet *[]entity.Drill, x, y float64, blocks *[]flo
 	vdrill.Merge()
 	return
 }
+func GenVDrillIDW(drillSet *[]entity.Drill, x, y float64) (vdrill entity.Drill) {
+	log.SetFlags(log.Lshortfile)
+	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
+	nearDrills := obtainNearDrills(drillSet, vdrill, constant.RadiusIn)
+	for _, d := range *nearDrills { // if the position of the vdrill is just at a real drill's position
+		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
+			return d
+		}
+	}
+	setClassicalIdwWeights(vdrill, *nearDrills)
+	nearDrills = utils.UnifyDrillsStrata(nearDrills, utils.CheckSeqMinNeg)
+	vdrill.Layers = (*nearDrills)[0].Layers
+	var vHeights []float64 = make([]float64, len(vdrill.Layers), len(vdrill.Layers))
+	for lidx, _ := range vdrill.Layers {
+		for _, d := range *nearDrills {
+			vHeights[lidx] += d.GetWeight() * d.LayerHeights[lidx]
+		}
+		if lidx-1 >= 0 && math.Abs(vHeights[lidx]-vHeights[lidx-1]) < 10e-5 {
+			vHeights[lidx] = vHeights[lidx-1]
+		}
+	}
+	vdrill.LayerHeights = vHeights
+	vdrill.Z = vHeights[0]
+	vdrill.SetLength(vdrill.GetLength())
+	vdrill.UnStdSeq()
+	if !vdrill.IsValid() {
+		vdrill.Print()
+		log.Fatal("invalid vdirll.\n")
+	}
+	return vdrill
+}
 func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (weights []float64) {
 	var (
 		weightSum       float64
@@ -235,7 +213,7 @@ func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 	//get distance
 	for idx, aroundDrill := range aroundDrills {
 		dist := center.DistanceBetween(aroundDrill)
-		weights = append(weights, dist)
+		weights = append(weights, dist) //as distance
 		if dist < 0.0001 {
 			hasZeroDistance = true
 			zeroIdx = idx
@@ -245,13 +223,15 @@ func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 		for idx, _ := range weights {
 			weights[idx] = 0
 		}
-		weights[zeroIdx] = 1
+		if weights != nil && zeroIdx >= 0 && zeroIdx < len(weights) {
+			weights[zeroIdx] = 1
+		}
 	} else {
-		for idx, _ := range weights {
+		for idx, _ := range weights { //cal weight
 			weights[idx] = 1 / math.Pow(weights[idx], constant.IdwPow)
 			weightSum += weights[idx]
 		}
-		for idx, _ := range weights {
+		for idx, _ := range weights { //归一化, and set int the drill.
 			weights[idx] = weights[idx] / weightSum
 			aroundDrills[idx].SetWeight(weights[idx])
 		}
@@ -264,24 +244,26 @@ func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 	}
 	return weights
 }
-func obtainNearDrills(drillSet []entity.Drill, drill entity.Drill, includeNum int) (drills []entity.Drill) {
-	if includeNum > len(drillSet) {
-		includeNum = len(drillSet)
+func obtainNearDrills(drillSet *[]entity.Drill, drill entity.Drill, includeNum int) *[]entity.Drill {
+	var drills []entity.Drill
+	if includeNum > len(*drillSet) {
+		includeNum = len(*drillSet)
+		return drillSet
 	}
-	dists := make([]float64, len(drillSet), len(drillSet))
-	for i, d := range drillSet {
+	dists := make([]float64, len(*drillSet), len(*drillSet))
+	for i, d := range *drillSet {
 		dists[i] = drill.DistanceBetween(d)
 	}
 
 	sort.Float64s(dists)
 	radius := dists[includeNum-1]
 
-	for _, d := range drillSet {
+	for _, d := range *drillSet {
 		if distance := drill.DistanceBetween(d); distance <= radius && d.Name != drill.Name {
 			drills = append(drills, d)
 		}
 	}
-	return drills
+	return &drills
 }
 func heightRange(drills []entity.Drill) (ceil float64, floor float64) {
 	ceil, floor = -math.MaxFloat64, math.MaxFloat64
@@ -366,18 +348,22 @@ func blocksIndex(blocks []float64, ceil, floor float64) (index int) {
 			return idx
 		}
 	}
+	debug.PrintStack()
+	log.Fatal("error")
 	return -1
 }
-func GetVirtualDrillsBetween(drill1, drill2 entity.Drill, n int) (virtualDrills []entity.Drill) {
+
+func GetVirtualDrillsBetween(drill1, drill2 entity.Drill, n int,
+	gen func(*[]entity.Drill, float64, float64) entity.Drill) (
+	virtualDrills []entity.Drill) {
 	log.SetFlags(log.Lshortfile)
 	drillSet := constant.DrillSet()
-	blocks := MakeBlocks(drillSet, 0.02)
 	x1, y1 := drill1.X, drill1.Y
 	x2, y2 := drill2.X, drill2.Y
 	vertices := utils.SplitSegment(x1, y1, x2, y2, n)
 	for idx := 1; idx < len(vertices); idx += 2 {
-		virtualDrills = append(virtualDrills, generateVirtualDrill(drillSet, vertices[idx-1], vertices[idx], blocks))
-		//virtualDrills = append(virtualDrills, generateVirtualDrill2(&drillSet, vertices[idx-1], vertices[idx], &blocks))
+		virtualDrills = append(virtualDrills, gen(&drillSet, vertices[idx-1], vertices[idx]))
 	}
+	virtualDrills = append(virtualDrills, drill2)
 	return
 }

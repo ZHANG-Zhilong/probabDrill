@@ -23,6 +23,7 @@ type Drill struct {
 
 func (drill Drill) Print() {
 	log.SetFlags(log.Lshortfile)
+	//debug.PrintStack()
 	log.Printf("name: %s\nPosition:%.2f, %.2f, %.2f\nLength:%.2f\n",
 		drill.Name, drill.X, drill.Y, drill.Z, drill.GetLength())
 	fmt.Print("Layers: ")
@@ -77,7 +78,7 @@ func (drill Drill) GetBottomHeightByLayer(layer int) (height []float64) {
 	return
 }
 func (drill *Drill) GetLength() (length float64) {
-	if drill.length == 0.0 && drill.Z > drill.LayerHeights[len(drill.LayerHeights)-1] {
+	if drill.length-0 < 10e-5 && drill.Z > drill.LayerHeights[len(drill.LayerHeights)-1] {
 		drill.length = drill.Z - drill.LayerHeights[len(drill.LayerHeights)-1]
 	}
 	return drill.length
@@ -311,6 +312,13 @@ func (drill Drill) StdSeq(stdSeq []int) Drill {
 		seq []int     = []int{0}
 		h   []float64 = []float64{drill.Z}
 	)
+	if !drill.IsValid() {
+		log.SetFlags(log.Lshortfile)
+		drill.Print()
+		debug.PrintStack()
+		log.Fatal("error")
+	}
+
 	layers := drill.Layers
 	LayerFloorHeights := drill.LayerHeights
 	var idx1, idx2 int = 1, 1
@@ -359,17 +367,18 @@ func (drill Drill) UnStdSeq() Drill {
 }
 func (drill Drill) Round() (drill2 Drill) {
 	drill2 = drill
-	drill2.X = math.Round(drill.X)
-	drill2.Y = math.Round(drill.Y)
-	drill2.Z = math.Round(drill.Z)
+	drill2.X = math.Ceil(drill.X)
+	drill2.Y = math.Ceil(drill.Y)
+	drill2.Z = math.Ceil(drill.Z)
 	for idx, h := range drill2.LayerHeights {
-		drill2.LayerHeights[idx] = math.Round(h)
+		drill2.LayerHeights[idx] = math.Ceil(h)
 	}
 	return drill2
 }
-func (drill Drill) RoundDrills(drills []Drill) (rDrills []Drill) {
+func (drill Drill) RoundDrills(drills []Drill) *[]Drill {
+	var rDrills []Drill
 	for _, d := range drills {
 		rDrills = append(rDrills, d.Round())
 	}
-	return rDrills
+	return &rDrills
 }
