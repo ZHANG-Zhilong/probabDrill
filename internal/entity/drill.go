@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"probabDrill"
 	"runtime/debug"
+	"sort"
+	"strconv"
 )
 
 const Ground int = 0
-
-type Layer_t int
 
 //Drill data
 type Drill struct {
@@ -21,10 +22,19 @@ type Drill struct {
 	weight       float64
 }
 
+func NewBasicDrill(name string, x, y, z float64) *Drill {
+	return &Drill{
+		Name: name,
+		X:    x,
+		Y:    y,
+		Z:    z,
+	}
+}
+
 func (drill Drill) Print() {
 	log.SetFlags(log.Lshortfile)
 	//debug.PrintStack()
-	log.Printf("name: %s\nPosition:%.2f, %.2f, %.2f\nLength:%.2f\n",
+	log.Printf("Name: %s\nPosition:%.2f, %.2f, %.2f\nLength:%.2f\n",
 		drill.Name, drill.X, drill.Y, drill.Z, drill.GetLength())
 	fmt.Print("Layers: ")
 	printInts(drill.Layers)
@@ -53,7 +63,6 @@ func (drill *Drill) AddLayer(layer int, layerDepthHeight float64) {
 	drill.LayerHeights = append(drill.LayerHeights, layerDepthHeight)
 }
 
-// getter and setter
 func (drill *Drill) SetZ(z float64) {
 	drill.Z = z
 }
@@ -61,15 +70,15 @@ func (drill *Drill) SetWeight(weight float64) {
 	drill.weight = weight
 }
 func (drill Drill) GetWeight() float64 {
-	if drill.weight <= 0.001 || math.IsInf(drill.weight, 10) || math.IsNaN(drill.weight) {
-		log.SetFlags(log.Lshortfile)
-		drill.Print()
+	log.SetFlags(log.Lshortfile)
+	if math.IsInf(drill.weight, 10) || math.IsNaN(drill.weight) {
 		debug.PrintStack()
-		log.Fatal("error")
+		drill.Print()
+		log.Fatal("invalid drill weight.\n")
 	}
 	return drill.weight
 }
-func (drill Drill) GetBottomHeightByLayer(layer int) (height []float64) {
+func (drill Drill) GetLayerBottomHeight(layer int) (height []float64) {
 	for idx := 0; idx < len(drill.Layers); idx++ {
 		if layer == drill.Layers[idx] {
 			height = append(height, drill.LayerHeights[idx])
@@ -91,6 +100,7 @@ func (drill Drill) GetBottomHeight() (bottom float64) {
 	return
 }
 func (drill Drill) IsValid() (valid bool) {
+	log.SetFlags(log.Lshortfile)
 	if drill.GetLength() != drill.Z-drill.GetBottomHeight() {
 		return false
 	}
@@ -100,7 +110,8 @@ func (drill Drill) IsValid() (valid bool) {
 	if len(drill.LayerHeights) > 1 {
 		for idx := 1; idx < len(drill.LayerHeights); idx++ {
 			if drill.LayerHeights[idx]-drill.LayerHeights[idx-1] > 0 {
-				return false
+				drill.Print()
+				log.Fatal("drill is not valid\n")
 			}
 		}
 	}
@@ -159,13 +170,8 @@ func (drill *Drill) Merge() {
 	drill.Layers = layers
 	drill.LayerHeights = heights
 }
-func (drill Drill) DistanceBetween(drill2 Drill) (dist float64) {
-	x1, y1, x2, y2 := drill.X, drill.Y, drill2.X, drill2.Y
-	dist = math.Sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
-	if math.IsNaN(dist) || math.IsInf(dist, 0) || dist < 0 {
-		return -1
-	}
-	return dist
+func (drill Drill) Distance(drill2 Drill) (dist float64) {
+	return math.Hypot(drill.X-drill2.X, drill.Y-drill2.Y)
 }
 func (drill Drill) Explode(blocks []float64) (scattered Drill) {
 	if blocks == nil {
@@ -342,43 +348,100 @@ func (drill Drill) StdSeq(stdSeq []int) Drill {
 	drill.LayerHeights = h
 	return drill
 }
-func (drill Drill) UnStdSeq() Drill {
+
+func (drill *Drill) UnStdSeq() {
+	log.SetFlags(log.Lshortfile)
 	var (
 		seq []int     = []int{0}
 		h   []float64 = []float64{drill.Z}
 	)
 	if len(drill.Layers) < 2 {
-		log.SetFlags(log.Lshortfile)
 		log.Fatal("error")
 	}
 	for idx := 1; idx < len(drill.LayerHeights); idx++ {
-		if drill.LayerHeights[idx] == drill.LayerHeights[idx-1] {
-			idx++
+		if math.Abs(drill.LayerHeights[idx]-drill.LayerHeights[idx-1]) < probabDrill.MinThicknessInDrill {
 			continue
 		} else {
 			seq = append(seq, drill.Layers[idx])
-			h = append(h, drill.LayerHeights[idx])
-			idx++
+			h = append(h, decimal(drill.LayerHeights[idx]))
 		}
 	}
 	drill.Layers = seq
 	drill.LayerHeights = h
-	return drill
 }
-func (drill Drill) Round() (drill2 Drill) {
-	drill2 = drill
-	drill2.X = math.Ceil(drill.X)
-	drill2.Y = math.Ceil(drill.Y)
-	drill2.Z = math.Ceil(drill.Z)
-	for idx, h := range drill2.LayerHeights {
-		drill2.LayerHeights[idx] = math.Ceil(h)
-	}
-	return drill2
+func (drill *Drill) update() {
+	drill.Z = drill.LayerHeights[0]
+	drill.length = drill.LayerHeights[0] - drill.LayerHeights[len(drill.LayerHeights)-1]
+	drill.IsValid()
 }
-func (drill Drill) RoundDrills(drills []Drill) *[]Drill {
-	var rDrills []Drill
+func (drill Drill) GetRec(drills []Drill) (x1, y1, x2, y2 float64) {
+	x1, y1, x2, y2 = math.MaxFloat64, math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64
 	for _, d := range drills {
-		rDrills = append(rDrills, d.Round())
+		x1 = math.Min(x1, d.X)
+		y1 = math.Min(y1, d.Y)
+		x2 = math.Max(x2, d.X)
+		y2 = math.Max(y2, d.Y)
 	}
-	return &rDrills
+	return
+}
+func decimal(value float64) float64 {
+	value = math.Trunc(value*1e2+0.5) * 1e-2
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+	return value
+}
+func (drill Drill) NearDrills(drillSet []Drill, includeNum int) []Drill {
+	if includeNum > len(drillSet) {
+		includeNum = len(drillSet)
+		return drillSet
+	}
+	var drills []Drill
+	dists := make([]float64, len(drillSet), len(drillSet))
+	for i, d := range drillSet {
+		dists[i] = drill.Distance(d)
+	}
+
+	sort.Float64s(dists)
+	radius := dists[includeNum-1]
+
+	for _, d := range drillSet {
+		if distance := drill.Distance(d); distance <= radius && d.Name != drill.Name {
+			drills = append(drills, d)
+		}
+	}
+	return drills
+}
+func SetLengthAndZ(drill *Drill, incidentDrills []Drill) {
+	log.SetFlags(log.Lshortfile)
+	var length, z, bottom float64 = 0, 0, 0
+	for _, d := range incidentDrills {
+		if d.GetBottomHeight() < bottom {
+			bottom = d.GetBottomHeight()
+		}
+	}
+	for idx := 0; idx < len(incidentDrills); idx++ {
+		length += incidentDrills[idx].GetLength() * incidentDrills[idx].GetWeight()
+		z += incidentDrills[idx].Z * incidentDrills[idx].GetWeight()
+	}
+	if length > drill.Z-bottom {
+		length = drill.Z - bottom
+	}
+	drill.SetLength(length)
+	drill.SetZ(z)
+	if drill.GetBottomHeight() < bottom {
+		drill.SetLength(drill.Z - bottom)
+	}
+	if drill.Z <= drill.GetBottomHeight() {
+		debug.PrintStack()
+		drill.Print()
+		log.Fatal("error")
+	}
+}
+func (drill *Drill) AddLAndH(layer int, height float64) {
+	if height <= drill.LayerHeights[len(drill.LayerHeights)-1] {
+		drill.Layers = append(drill.Layers, layer)
+		drill.LayerHeights = append(drill.LayerHeights, height)
+	} else {
+		log.SetFlags(log.Lshortfile)
+		log.Fatal("error")
+	}
 }

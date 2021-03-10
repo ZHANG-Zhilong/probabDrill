@@ -1,14 +1,15 @@
-package constant
+package probabDrill
 
 const GridXY float64 = 1000   //distance of grid
-const BlockResZ float64 = 0.5 //length of block < 1/3 min layer thickness
+const BlockResZ float64 = 0.7 //length of block < 1/3 min layer thickness
 const OffX float64 = -3592727.0
 const OffY float64 = -499523.0
 const ScaleXY float64 = 1
 const ScaleZ float64 = 1
 const StdLen int = 38    //len of std layer num
-const RadiusIn int = 9   //how many real drills in search radius
-const IdwPow float64 = 1 //power of inverse weighting interpolation method
+const RadiusIn int = 3   //how many real drills in search radius
+const IdwPow float64 = 2 //power of inverse weighting interpolation method
+const MinThicknessInDrill = 1
 
 const Layer string = "/Users/zhangzhilong/go/src/probabDrill/assets/layer_info.dat"
 const Basic string = "/Users/zhangzhilong/go/src/probabDrill/assets/basic_info.dat"
@@ -18,7 +19,7 @@ const StdLayer string = "/Users/zhangzhilong/go/src/probabDrill/assets/std_layer
 const DrillWidth int = 20
 const CanvasWidth int = 2800
 const CanvasHeight int = 1400
-const CanvasMinThickness int =8
+const CanvasMinThickness int = 8
 const CanvasOffsetY int = 15
 
 //const Basic string = "C:/Users/张志龙/go/src/probabDrill/assets/basic_info.dat"

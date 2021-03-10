@@ -3,6 +3,7 @@ package constant
 import (
 	"io/ioutil"
 	"os"
+	"probabDrill"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,7 +22,7 @@ func GetSeqByName(name string) int {
 //init1 init
 func init1() {
 	once.Do(func() {
-		file, err := os.Open(StdLayer)
+		file, err := os.Open(probabDrill.StdLayer)
 		if err != nil {
 			panic(err)
 		}

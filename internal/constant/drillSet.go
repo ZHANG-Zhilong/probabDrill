@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"probabDrill"
 	"probabDrill/internal/entity"
 	"strconv"
 	"strings"
@@ -49,7 +50,7 @@ func init2() {
 		var drills []entity.Drill
 
 		//add basic
-		contents := readFile(Basic)
+		contents := readFile(probabDrill.Basic)
 		cs := strings.Split(contents, "\n")
 		if len(cs) < 10 {
 			log.Fatal("error split")
@@ -69,9 +70,9 @@ func init2() {
 				z, _ := strconv.ParseFloat(temp[3], 64)
 				d := entity.Drill{
 					Name: temp[0],
-					X:    (x + OffX) * ScaleXY,
-					Y:    (y + OffY) * ScaleXY,
-					Z:    z * ScaleZ,
+					X:    (x + probabDrill.OffX) * probabDrill.ScaleXY,
+					Y:    (y + probabDrill.OffY) * probabDrill.ScaleXY,
+					Z:    z * probabDrill.ScaleZ,
 				}
 
 				//add ground layers, initial value.
@@ -84,7 +85,7 @@ func init2() {
 		}
 
 		//add layers
-		contents = readFile(Layer)
+		contents = readFile(probabDrill.Layer)
 		if strings.Index(contents, "\r\n") > 0 {
 			log.Fatal("error, the file is crlf, not lf")
 		}
@@ -133,7 +134,7 @@ var bx, by []float64
 func initBoundary() {
 	log.SetFlags(log.Lshortfile)
 	onceInitBoundary.Do(func() {
-		contents := readFile(Boundary)
+		contents := readFile(probabDrill.Boundary)
 		if strings.Index(contents, "\r\n") > 0 {
 			log.Fatal("error, the file is crlf, not lf")
 		}
@@ -142,8 +143,8 @@ func initBoundary() {
 			temp := strings.Split(p, "  ")
 			x, _ := strconv.ParseFloat(temp[0], 64)
 			y, _ := strconv.ParseFloat(temp[1], 64)
-			x = (x + OffX) * ScaleXY
-			y = (y + OffY) * ScaleXY
+			x = (x + probabDrill.OffX) * probabDrill.ScaleXY
+			y = (y + probabDrill.OffY) * probabDrill.ScaleXY
 			bx = append(bx, x)
 			by = append(by, y)
 		}

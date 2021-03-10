@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gonum.org/v1/gonum/mat"
 	"probabDrill/internal/constant"
-	"probabDrill/internal/service"
 	"probabDrill/internal/utils"
 	"testing"
 )
@@ -16,7 +15,7 @@ func TestProbLayers(t *testing.T) {
 }
 func TestProbBlocks(t *testing.T) {
 	drills := constant.DrillSet()
-	blocks := service.MakeBlocks(drills, 1)
+	blocks := utils.MakeBlocks(drills, 1)
 	probs := ProbBlocks(&drills, &blocks)
 	fmt.Println(probs)
 }
@@ -27,7 +26,7 @@ func TestProbLBs(t *testing.T) {
 	//fmt.Println(mat)
 	drills := constant.SimpleDrillSet()
 	utils.DisplayDrills(drills)
-	blockHeights := service.MakeBlocks(drills, 0.5)
+	blockHeights := utils.MakeBlocks(drills, 0.5)
 
 	pb := ProbBlocks(&drills, &blockHeights)
 	//fa1 := mat.Formatted(pb, mat.Prefix("    "), mat.Squeeze())

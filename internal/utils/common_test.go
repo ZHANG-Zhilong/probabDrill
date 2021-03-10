@@ -10,7 +10,7 @@ import (
 func TestDrill_UnifyStratum(t *testing.T) {
 	drills := constant.SimpleDrillSet()
 	DisplayDrills(drills)
-	uniLayers := UnifyDrillsStrata(&drills, CheckSeqZiChun)
+	uniLayers := UnifyDrillsStrata(drills, CheckSeqZiChun)
 	DisplayDrills(drills)
 	fmt.Println(uniLayers)
 }
@@ -55,10 +55,10 @@ func TestUnifyStratum(t *testing.T) {
 		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
 	drills1 := []entity.Drill{drill1, drill2, drill3}
-	drills1 = *UnifyDrillsStrata(&drills1, CheckSeqZiChun)
+	drills1 = UnifyDrillsStrata(drills1, CheckSeqZiChun)
 	fmt.Println("=======")
 	DisplayDrills(drills1)
-	drills1 = *UnifyDrillsStrata(&drills1, CheckSeqMinNeg)
+	drills1 = UnifyDrillsStrata(drills1, CheckSeqMinNeg)
 	fmt.Println("=======")
 	DisplayDrills(drills1)
 
@@ -75,11 +75,17 @@ func TestUnifyStratum(t *testing.T) {
 		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
 	drills2 := []entity.Drill{drill4, drill5, drill6}
-	drills2 = *UnifyDrillsStrata(&drills2, CheckSeqZiChun)
+	drills2 = UnifyDrillsStrata(drills2, CheckSeqZiChun)
 	DisplayDrills(drills2)
 	fmt.Println("=======")
-	drills2 = *UnifyDrillsStrata(&drills2, CheckSeqMinNeg)
+	drills2 = UnifyDrillsStrata(drills2, CheckSeqMinNeg)
 	DisplayDrills(drills2)
 	fmt.Println("=======")
-	DrawDrills([]entity.Drill{constant.DrillSet()[1], constant.DrillSet()[2]})
+	DrawDrills([]entity.Drill{constant.DrillSet()[1], constant.DrillSet()[2]}, "./a.svg")
+}
+func TestDecimal(t *testing.T) {
+	sample := []float64{1.345, 1.00000000001}
+	for _, s := range sample {
+		fmt.Println(Decimal(s))
+	}
 }
