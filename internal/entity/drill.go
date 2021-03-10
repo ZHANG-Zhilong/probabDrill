@@ -101,20 +101,19 @@ func (drill Drill) GetBottomHeight() (bottom float64) {
 }
 func (drill Drill) IsValid() (valid bool) {
 	log.SetFlags(log.Lshortfile)
-	if drill.GetLength() != drill.Z-drill.GetBottomHeight() {
-		return false
+	if math.Abs(drill.GetLength()-drill.Z-drill.GetBottomHeight()) < 1e-2 {
+		log.Fatal("math.Abs(drill.GetLength() - drill.Z-drill.GetBottomHeight() ) < 1e-2")
 	}
 	if len(drill.LayerHeights) != len(drill.Layers) {
-		return false
+		log.Fatal("len(drill.LayerHeights) != len(drill.Layers)")
 	}
-	if len(drill.LayerHeights) > 1 {
-		for idx := 1; idx < len(drill.LayerHeights); idx++ {
-			if drill.LayerHeights[idx]-drill.LayerHeights[idx-1] > 0 {
-				drill.Print()
-				log.Fatal("drill is not valid\n")
-			}
-		}
-	}
+	//if len(drill.LayerHeights) > 1 {
+	//	for idx := 1; idx < len(drill.LayerHeights); idx++ {
+	//		if drill.LayerHeights[idx]-drill.LayerHeights[idx-1] > 0 {
+	//			return false
+	//		}
+	//	}
+	//}
 	return true
 }
 func (drill Drill) HasLayer(layer int) (num int) {
@@ -389,11 +388,20 @@ func decimal(value float64) float64 {
 	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
 	return value
 }
-func (drill Drill) NearDrills(drillSet []Drill, includeNum int) []Drill {
+func (drill Drill) NearDrills(drillSet []Drill, includeNum int) (nears []Drill) {
 	if includeNum > len(drillSet) {
 		includeNum = len(drillSet)
 		return drillSet
 	}
+	sort.Slice(drillSet, func(i, j int) bool {
+		d1 := drillSet[i]
+		d2 := drillSet[j]
+		dist1 := math.Hypot(d1.X, d1.Y)
+		dist2 := math.Hypot(d2.X, d2.Y)
+		return dist1 < dist2
+	})
+	nears =make([]Drill, includeNum)
+	copy(nears, drillSet[:includeNum-1])
 	var drills []Drill
 	dists := make([]float64, len(drillSet), len(drillSet))
 	for i, d := range drillSet {

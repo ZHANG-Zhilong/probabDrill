@@ -194,7 +194,7 @@ func GenVDrillIDW(drillSet []entity.Drill, x, y float64) (vdrill entity.Drill) {
 func GenHelpDrills() (hdrills []entity.Drill) {
 	drillSet := constant.DrillSet()
 	var x0, y0, x1, y1, r float64
-	r = 400 // min distance between points
+	r = 800 // min distance between points
 	k := 10 // max attempts to add neighboring point
 	x0, y0, x1, y1 = drillSet[0].GetRec(drillSet)
 	points := poissondisc.Sample(x0, y0, x1, y1, r, k, nil)
