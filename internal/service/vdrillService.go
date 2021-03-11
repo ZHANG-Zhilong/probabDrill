@@ -7,10 +7,10 @@ import (
 	"log"
 	"math"
 	"probabDrill"
-	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 	"probabDrill/internal/stat"
 	"probabDrill/internal/utils"
+	"runtime/debug"
 )
 
 func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
@@ -22,7 +22,7 @@ func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 	gridx, gridy := utils.GetGrids(px, py, l, r, t, b)
 	log.Println(gridx)
 	log.Println(gridy)
-	bx, by := constant.GetBoundary()
+	bx, by := entity.GetBoundary()
 	var in, out int
 	for idx := range gridx {
 		for idy := range gridy {
@@ -44,18 +44,19 @@ func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 	}
 	return
 }
-func GenVDrillM1(drillSet []entity.Drill, x, y float64) (virtualDrill entity.Drill) {
-	log.SetFlags(log.Lshortfile)
-	virtualDrill = virtualDrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
-	nearDrills := virtualDrill.NearDrills(drillSet, probabDrill.RadiusIn)
+func GenVDrillM1(drills []entity.Drill, x, y float64) (virtualDrill entity.Drill) {
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	virtualDrill = virtualDrill.MakeDrill(entity.GenVDrillName(), x, y, 0)
+	nearDrills := virtualDrill.NearDrills(drills, probabDrill.RadiusIn)
 	for _, d := range nearDrills {
-		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
+		if math.Abs(x-d.X) < probabDrill.MinDrillDist && math.Abs(y-d.Y) < probabDrill.MinDrillDist {
 			return d
 		}
 	}
 	utils.SetClassicalIdwWeights(virtualDrill, nearDrills)
 	entity.SetLengthAndZ(&virtualDrill, nearDrills)
-	blocks := utils.MakeBlocks(drillSet, 0.02)
+	blocks := utils.MakeBlocks(drills, probabDrill.BlockResZ)
+	//blocks := entity.GetBlocks()
 	virtualDrill.LayerHeights = utils.ExplodedHeights(blocks, virtualDrill.Z, virtualDrill.GetBottomHeight())
 	//virtual(name, x, y, z, length, heights, weight)  还差 layers,
 
@@ -67,6 +68,12 @@ func GenVDrillM1(drillSet []entity.Drill, x, y float64) (virtualDrill entity.Dri
 		//p(layer|block0)
 		//bidx = 107
 		ceil, floor := blocks[bidx-1], blocks[bidx]
+		if ceil <= floor {
+			debug.PrintStack()
+			log.Println(blocks)
+			log.Printf("len(blocks)%d, bidx:%d, ceil:%f, floor %f\n", len(blocks), bidx, ceil, floor)
+			log.Fatal("error")
+		}
 		var probBlock = utils.StatProbBlockWithWeight(nearDrills, ceil, floor)
 		//var probBlock = utils.StatProbBlock(*NearDrills, ceil, floor)
 		var probLayers = make([]float64, probabDrill.StdLen, probabDrill.StdLen)
@@ -77,7 +84,7 @@ func GenVDrillM1(drillSet []entity.Drill, x, y float64) (virtualDrill entity.Dri
 			//layerIdx = 26
 			probLayers[layerIdx] = utils.StatProbLayerWithWeight(nearDrills, ceil, floor, layerIdx)
 			//probLayers[layerIdx] = utils.StatProbLayer(*NearDrills, ceil, floor, layerIdx)
-			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(drillSet, ceil, floor, layerIdx)
+			probBlockLayers[layerIdx] = utils.StatProbBlockLayer(drills, ceil, floor, layerIdx)
 
 			if probBlock >= 0.0000001 {
 				probLayerBlock2s[layerIdx] = probBlockLayers[layerIdx] * probLayers[layerIdx] / probBlock
@@ -90,17 +97,19 @@ func GenVDrillM1(drillSet []entity.Drill, x, y float64) (virtualDrill entity.Dri
 	for idx := 1; idx < len(virtualDrill.LayerHeights); idx++ {
 		ceil, floor := virtualDrill.LayerHeights[idx-1], virtualDrill.LayerHeights[idx]
 		bidx := utils.BlocksIndex(blocks, ceil, floor)
+		//bidx := entity.BlockIndex(ceil, floor)
 		probs := probLayerBlocks3s[bidx]
-		layer, prob := utils.FindMaxFloat64s(probs)
+		layer, _ := utils.FindMaxFloat64s(probs)
 		virtualDrill.Layers = append(virtualDrill.Layers, int(layer))
-		utils.Hole(prob)
 	}
 	virtualDrill.Merge()
 	return
 }
+
+//Deprecated
 func GenVDrillM2(drillSet []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
-	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
+	vdrill = vdrill.MakeDrill(entity.GenVDrillName(), x, y, 0)
 	nearDrills := vdrill.NearDrills(drillSet, probabDrill.RadiusIn)
 	for _, d := range nearDrills {
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
@@ -109,7 +118,8 @@ func GenVDrillM2(drillSet []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	}
 	utils.SetClassicalIdwWeights(vdrill, nearDrills)
 	entity.SetLengthAndZ(&vdrill, nearDrills)
-	blocks := utils.MakeBlocks(drillSet, probabDrill.BlockResZ)
+	//blocks := utils.MakeBlocks(drillSet, probabDrill.BlockResZ)
+	blocks := entity.GetBlocks()
 	vdrill.LayerHeights = utils.ExplodedHeights(blocks, vdrill.Z, vdrill.GetBottomHeight())
 	vdBlocks := vdrill.LayerHeights
 	//virtual(name, x, y, z, length, heights, weight)  还差 layers,
@@ -148,7 +158,7 @@ func GenVDrillM2(drillSet []entity.Drill, x, y float64) (vdrill entity.Drill) {
 }
 func GenVDrillIDW(drillSet []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
-	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
+	vdrill = vdrill.MakeDrill(entity.GenVDrillName(), x, y, 0)
 	nearDrills := vdrill.NearDrills(drillSet, probabDrill.RadiusIn)
 	//if vdrill.name == "virtual10" {
 	//	for _, d := range nearDrills {
@@ -170,7 +180,7 @@ func GenVDrillIDW(drillSet []entity.Drill, x, y float64) (vdrill entity.Drill) {
 		}
 	}
 	utils.SetClassicalIdwWeights(vdrill, nearDrills)
-	nearDrills = utils.UnifyDrillsStrata(nearDrills, utils.CheckSeqMinNeg)
+	nearDrills = entity.UnifyDrillsStrata(nearDrills, entity.CheckSeqMinNeg)
 	vdrill.Layers = nearDrills[0].Layers
 	var vHeights = make([]float64, len(vdrill.Layers), len(vdrill.Layers))
 	for lidx, _ := range vdrill.Layers {
@@ -192,7 +202,7 @@ func GenVDrillIDW(drillSet []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	return vdrill
 }
 func GenHelpDrills() (hdrills []entity.Drill) {
-	drillSet := constant.DrillSet()
+	drillSet := entity.DrillSet()
 	var x0, y0, x1, y1, r float64
 	r = 800 // min distance between points
 	k := 10 // max attempts to add neighboring point
@@ -210,7 +220,7 @@ func GenVDrillsBetween(drill1, drill2 entity.Drill, n int, gen GenVDrills) (vDri
 	log.SetFlags(log.Lshortfile)
 	//drillSet := constant.DrillSet()
 	drillSet := GenHelpDrills()
-	vertices := utils.SplitSegment(drill1.X, drill1.Y, drill2.X, drill2.Y, n)
+	vertices := utils.MiddleKPoints(drill1.X, drill1.Y, drill2.X, drill2.Y, n)
 	for idx := 1; idx < len(vertices); idx += 2 {
 		vDrills = append(vDrills, gen(drillSet, vertices[idx-1], vertices[idx]))
 	}

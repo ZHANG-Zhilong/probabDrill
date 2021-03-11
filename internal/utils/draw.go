@@ -123,7 +123,7 @@ func DrawDrills(drills []entity.Drill, picPath string) {
 		drawDrill(canvas, &d, width/10+int(float64(accumDist[i])*scalex), scaley)
 	}
 
-	drills = UnifyDrillsStrata(drills, CheckSeqZiChun)
+	drills = entity.UnifyDrillsStrata(drills, entity.CheckSeqZiChun)
 	for idx := 1; idx < len(drills); idx++ {
 		x1 := width/10 + int(scalex*float64(accumDist[idx-1]))
 		x2 := width/10 + int(scalex*float64(accumDist[idx]))

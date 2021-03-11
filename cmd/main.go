@@ -2,16 +2,15 @@ package main
 
 import (
 	"log"
-	"probabDrill/internal/constant"
+	"probabDrill/internal/entity"
 	"probabDrill/internal/service"
-	"probabDrill/internal/utils"
 )
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	drillSet := constant.DrillSet()
+	drillSet := entity.DrillSet()
 	virtualDrillsCrossGrid := service.GetGridDrills(drillSet)
-	utils.DisplayDrills(virtualDrillsCrossGrid)
+	entity.DisplayDrills(virtualDrillsCrossGrid)
 
 }
 

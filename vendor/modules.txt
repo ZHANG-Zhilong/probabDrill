@@ -13,6 +13,12 @@ github.com/fogleman/poissondisc
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 github.com/golang/freetype/raster
 github.com/golang/freetype/truetype
+# github.com/kyroy/kdtree v0.0.0-20200419114247-70830f883f1d
+## explicit
+github.com/kyroy/kdtree
+github.com/kyroy/kdtree/kdrange
+# github.com/kyroy/priority-queue v0.0.0-20180327160706-6e21825e7e0c
+github.com/kyroy/priority-queue
 # golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
 ## explicit
 golang.org/x/image/draw
@@ -38,5 +44,3 @@ gonum.org/v1/gonum/lapack
 gonum.org/v1/gonum/lapack/gonum
 gonum.org/v1/gonum/lapack/lapack64
 gonum.org/v1/gonum/mat
-# gonum.org/v1/plot v0.0.0-20190515093506-e2840ee46a6b
-## explicit

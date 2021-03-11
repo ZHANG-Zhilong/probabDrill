@@ -16,7 +16,7 @@ var once3 sync.Once
 //get the drills around the param drill, not include drill itself, include boundary
 func GetDrillsIn(drill entity.Drill, distance float64) (drills []entity.Drill) {
 	init3()
-	drillSet := DrillSet()
+	drillSet := entity.DrillSet()
 	drillIdx, ok := nameIdxMap[drill.Name]
 	if ok {
 		dists := disMat[drillIdx]
@@ -58,7 +58,7 @@ func getDist(x1, y1, x2, y2 float64) (dist float64, ok bool) {
 func init3() {
 	once3.Do(func() {
 
-		drills := DrillSet()
+		drills := entity.DrillSet()
 		nameIdxMap = make(map[string]int)
 
 		for idx1 := 0; idx1 < len(drills); idx1++ {

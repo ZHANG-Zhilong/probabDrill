@@ -67,7 +67,7 @@ func (drill *Drill) SetZ(z float64) {
 	drill.Z = z
 }
 func (drill *Drill) SetWeight(weight float64) {
-	drill.weight = weight
+	drill.weight = decimal(weight)
 }
 func (drill Drill) GetWeight() float64 {
 	log.SetFlags(log.Lshortfile)
@@ -393,30 +393,23 @@ func (drill Drill) NearDrills(drillSet []Drill, includeNum int) (nears []Drill) 
 		includeNum = len(drillSet)
 		return drillSet
 	}
+
 	sort.Slice(drillSet, func(i, j int) bool {
-		d1 := drillSet[i]
-		d2 := drillSet[j]
-		dist1 := math.Hypot(d1.X, d1.Y)
-		dist2 := math.Hypot(d2.X, d2.Y)
+		dist1 := drill.Distance(drillSet[i])
+		dist2 := drill.Distance(drillSet[j])
 		return dist1 < dist2
 	})
-	nears =make([]Drill, includeNum)
-	copy(nears, drillSet[:includeNum-1])
-	var drills []Drill
-	dists := make([]float64, len(drillSet), len(drillSet))
-	for i, d := range drillSet {
-		dists[i] = drill.Distance(d)
+	var start int
+	if drillSet[0].Distance(drill) < 1e-1 {
 	}
-
-	sort.Float64s(dists)
-	radius := dists[includeNum-1]
-
 	for _, d := range drillSet {
-		if distance := drill.Distance(d); distance <= radius && d.Name != drill.Name {
-			drills = append(drills, d)
+		if d.Distance(drill) < 1e-1 {
+			start++
 		}
 	}
-	return drills
+	nears = make([]Drill, includeNum)
+	copy(nears, drillSet[start:start+includeNum])
+	return nears
 }
 func SetLengthAndZ(drill *Drill, incidentDrills []Drill) {
 	log.SetFlags(log.Lshortfile)
@@ -433,10 +426,10 @@ func SetLengthAndZ(drill *Drill, incidentDrills []Drill) {
 	if length > drill.Z-bottom {
 		length = drill.Z - bottom
 	}
-	drill.SetLength(length)
-	drill.SetZ(z)
+	drill.SetLength(decimal(length))
+	drill.SetZ(decimal(z))
 	if drill.GetBottomHeight() < bottom {
-		drill.SetLength(drill.Z - bottom)
+		drill.SetLength(decimal(drill.Z - bottom))
 	}
 	if drill.Z <= drill.GetBottomHeight() {
 		debug.PrintStack()
@@ -452,4 +445,24 @@ func (drill *Drill) AddLAndH(layer int, height float64) {
 		log.SetFlags(log.Lshortfile)
 		log.Fatal("error")
 	}
+}
+
+// Dimensions ...
+func (drill *Drill) Dimensions() int {
+	return 2
+}
+
+// Dimension ...
+func (drill *Drill) Dimension(i int) float64 {
+	if i == 0 {
+		return drill.X
+	}
+	return drill.Y
+}
+
+func DisplayDrills(drills []Drill) {
+	for _, d := range drills {
+		d.Print()
+	}
+	fmt.Printf("total %d drills.", len(drills))
 }

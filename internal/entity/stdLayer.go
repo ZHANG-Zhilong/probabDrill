@@ -1,4 +1,4 @@
-package constant
+package entity
 
 import (
 	"io/ioutil"
