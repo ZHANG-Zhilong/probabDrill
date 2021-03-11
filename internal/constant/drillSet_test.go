@@ -1,4 +1,4 @@
-package entity
+package constant
 
 import (
 	"fmt"

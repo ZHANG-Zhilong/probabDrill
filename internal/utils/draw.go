@@ -12,7 +12,7 @@ import (
 
 func getMappedY(dy, scaley float64) (y int) {
 	if dy == 0 {
-		y = int(probabDrill.CanvasHeight / 10)
+		y = probabDrill.CanvasHeight / 10
 		return y + probabDrill.CanvasOffsetY
 	}
 	if dy > 0 {
@@ -33,7 +33,7 @@ func drawDrill(canvas *svg.SVG, drill *entity.Drill, x int, scaley float64) {
 	yb := getMappedY(drill.LayerHeights[len(drill.LayerHeights)-1], scaley)
 	canvas.Rect(x-probabDrill.DrillWidth/2, y0, probabDrill.DrillWidth, yb-y0,
 		"fill=\"none\" stroke=\"black\" stroke-width=\"1\"")
-	canvas.Text(x, yb+15, drill.Name,
+	canvas.Text(x, yb+25, drill.Name,
 		"text-anchor:middle;font-size:7px;fill:black")
 	for idx := 1; idx < len(drill.Layers); idx++ {
 		y := getMappedY(drill.LayerHeights[idx], scaley)
@@ -52,16 +52,8 @@ func drawDrill(canvas *svg.SVG, drill *entity.Drill, x int, scaley float64) {
 				"text-anchor:middle;font-size:2px;fill:black")
 		}
 	}
+}
 
-}
-func nextIdx(idx int, drill entity.Drill) (id int) {
-	if idx < len(drill.Layers)-1 {
-		id = idx + 1
-	} else {
-		id = len(drill.Layers) - 1
-	}
-	return
-}
 func connect(canvas *svg.SVG, scaley float64, drill1 *entity.Drill, x1 int, drill2 *entity.Drill, x2 int) () {
 	log.SetFlags(log.Lshortfile)
 	if len(drill1.Layers) != len(drill2.Layers) {
@@ -77,7 +69,7 @@ func connect(canvas *svg.SVG, scaley float64, drill1 *entity.Drill, x1 int, dril
 	for idx1 := 0; idx1 < len(drill1.Layers); idx1++ {
 		yl := getMappedY(drill1.LayerHeights[idx1], scaley)
 		yr := getMappedY(drill2.LayerHeights[idx1], scaley)
-		var lineId string = strconv.Itoa(yl) + strconv.Itoa(yr)
+		var lineId = strconv.Itoa(yl) + strconv.Itoa(yr)
 		if _, ok := mapPos[lineId]; ok {
 			continue
 		} else {

@@ -3,6 +3,7 @@ package play
 import (
 	"fmt"
 	"github.com/kyroy/kdtree"
+	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 )
 
@@ -11,7 +12,7 @@ type Data struct {
 }
 
 func PlayKdTree() {
-	drillSet := entity.DrillSet()
+	drillSet := constant.GetDrillSet()
 	var drills []kdtree.Point
 	for _, d := range drillSet {
 		drills = append(drills, &d)

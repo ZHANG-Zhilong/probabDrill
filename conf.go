@@ -7,7 +7,7 @@ const OffY float64 = -499523.0
 const ScaleXY float64 = 1
 const ScaleZ float64 = 1
 const StdLen int = 38    //len of std layer num
-const RadiusIn int = 3   //how many real drills in search radius
+const RadiusIn int = 5   //how many real drills in search radius
 const IdwPow float64 = 2 //power of inverse weighting interpolation method
 const MinThicknessInDrill = 1
 const MinDrillDist = 1
@@ -24,7 +24,7 @@ const CanvasMinThickness int = 8
 const CanvasOffsetY int = 15
 
 //poissiondisc sample param for help drill set
-const MinDistance = 800  // min distance between points
+const MinDistance = 500  // min distance between points
 const MaxAttemptAdd = 10 // max attempts to add neighboring point
 
 //const Basic string = "C:/Users/张志龙/go/src/probabDrill/assets/basic_info.dat"

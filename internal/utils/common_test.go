@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"log"
 	"probabDrill"
+	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 	"reflect"
 	"testing"
 )
 
 func TestDrill_UnifyStratum(t *testing.T) {
-	drills := entity.SimpleDrillSet()
+	drills := constant.SimpleDrillSet()
 	entity.DisplayDrills(drills)
 	uniLayers := entity.UnifyDrillsStrata(drills, entity.CheckSeqZiChun)
 	entity.DisplayDrills(drills)
@@ -83,7 +84,7 @@ func TestUnifyStratum(t *testing.T) {
 	drills2 = entity.UnifyDrillsStrata(drills2, entity.CheckSeqMinNeg)
 	entity.DisplayDrills(drills2)
 	fmt.Println("=======")
-	DrawDrills([]entity.Drill{entity.DrillSet()[1], entity.DrillSet()[2]}, "./a.svg")
+	DrawDrills([]entity.Drill{constant.GetDrillSet()[1], constant.GetDrillSet()[2]}, "./a.svg")
 }
 func TestDecimal(t *testing.T) {
 	sample := []float64{1.345, 1.00000000001}
@@ -93,15 +94,15 @@ func TestDecimal(t *testing.T) {
 }
 
 func TestDisplayDrills(t *testing.T) {
-	drillSet := entity.DrillSet()
+	drillSet := constant.GetDrillSet()
 	entity.DisplayDrills(drillSet)
 }
 func TestStatProbBlockLayer(t *testing.T) {
 	log.SetFlags(log.Lshortfile)
-	drills := entity.DrillSet()
+	drills := constant.GetDrillSet()
 	blocks := MakeBlocks(drills, probabDrill.BlockResZ)
 	for idx := int(1); idx < len(blocks); idx++ {
-		p := StatProbBlockLayer(drills, blocks[idx-1], blocks[idx], 2)
+		p := ProbBlockLayerG(drills, blocks[idx-1], blocks[idx], 2)
 		log.Println(p)
 	}
 }
@@ -123,7 +124,7 @@ func TestGetGrid(t *testing.T) {
 	}
 }
 func TestGetLayerSeq(t *testing.T) {
-	drills := entity.DrillSet()
+	drills := constant.GetDrillSet()
 	blocks := MakeBlocks(drills, probabDrill.BlockResZ)
 	drill0 := drills[0]
 	heights := ExplodedHeights(blocks, drill0.Z, drill0.GetBottomHeight())
@@ -139,8 +140,8 @@ func TestGetLayerSeq(t *testing.T) {
 	drill0.Print()
 }
 func TestExplodeDrill(t *testing.T) {
-	drill := entity.DrillSet()[0]
-	blocks := MakeBlocks(entity.DrillSet(), probabDrill.BlockResZ)
+	drill := constant.GetDrillSet()[0]
+	blocks := MakeBlocks(constant.GetDrillSet(), probabDrill.BlockResZ)
 	drill.Print()
 	drill = drill.Explode(blocks)
 	drill.Print()
@@ -158,8 +159,8 @@ func TestStatLayer(t *testing.T) {
 //	var virtualDrill entity.Drill
 //	log.SetFlags(log.Lshortfile)
 //	virtualDrill = virtualDrill.MakeDrill(entity.GenVDrillName(), 5580, -15020, 0)
-//	blocks := MakeBlocks(entity.DrillSet(), probabDrill.BlockResZ)
-//	drillSet := entity.DrillSet()
+//	blocks := MakeBlocks(entity.GetDrillSet(), probabDrill.BlockResZ)
+//	drillSet := entity.GetDrillSet()
 //	nearDrills := virtualDrill.NearDrills(drillSet, probabDrill.RadiusIn)
 //	SetClassicalIdwWeights(virtualDrill, nearDrills)
 //	entity.SetLengthAndZ(&virtualDrill, nearDrills)
@@ -171,7 +172,7 @@ func TestStatLayer(t *testing.T) {
 //	for idx := 1; idx < len(blocks); idx++ {
 //		probBlockWithWeights[idx] = ProbBlockW(nearDrills, blocks[idx-1], blocks[idx])
 //		//probBlocks[idx] = statProbBlock(NearDrills, blocks[idx-1], blocks[idx])
-//		//probBlockGeneral[idx] = statProbBlock(constant.DrillSet(), blocks[idx-1], blocks[idx])
+//		//probBlockGeneral[idx] = statProbBlock(constant.GetDrillSet(), blocks[idx-1], blocks[idx])
 //	}
 //	//log.Println("p(block)")
 //	//printFloat64s(blocks)
@@ -184,8 +185,8 @@ func TestStatLayer(t *testing.T) {
 //		var probBlockLayers = make([]float64, probabDrill.StdLen, probabDrill.StdLen)
 //		var probLayerBlock2s = make([]float64, probabDrill.StdLen, probabDrill.StdLen)
 //		for lidx := int(1); lidx < probabDrill.StdLen; lidx++ {
-//			probLayers[lidx] = ProbLayerWithWeight(nearDrills, blocks[idx-1], blocks[idx], lidx)
-//			probBlockLayers[lidx] = ProbBL(entity.DrillSet(), blocks[idx-1], blocks[idx], lidx)
+//			probLayers[lidx] = ProbLayerW(nearDrills, blocks[idx-1], blocks[idx], lidx)
+//			probBlockLayers[lidx] = ProbBL(entity.GetDrillSet(), blocks[idx-1], blocks[idx], lidx)
 //			if probBlockWithWeights[idx] >= 0.0000001 {
 //				probLayerBlock2s[lidx] = probLayers[lidx] * probBlockLayers[lidx] / probBlockWithWeights[idx]
 //			}
@@ -193,38 +194,38 @@ func TestStatLayer(t *testing.T) {
 //	}
 //}
 func TestProbLayerAndBlocksWithWeight(t *testing.T) {
-	blocks := MakeBlocks(entity.DrillSet(), probabDrill.BlockResZ)
-	drills := entity.DrillSet()
+	blocks := MakeBlocks(constant.GetDrillSet(), probabDrill.BlockResZ)
+	drills := constant.GetDrillSet()
 	drill0 := drills[0]
-	drillSet := entity.DrillSet()
+	drillSet := constant.GetDrillSet()
 	nearDrills := drill0.NearDrills(drillSet, 50)
 	SetClassicalIdwWeights(drill0, nearDrills)
 	log.SetFlags(log.Lshortfile)
 	for idx := 1; idx < len(blocks); idx++ {
 		for layer := int(1); layer < probabDrill.StdLen; layer++ {
 			ceil, floor := blocks[idx-1], blocks[idx]
-			prob1 := StatProbBlockAndLayerWithWeight(nearDrills, ceil, floor, layer)
-			prob2 := StatProbBlockAndLayer(drills, ceil, floor, layer)
+			prob1 := probBlockAndLayerW(nearDrills, ceil, floor, layer)
+			prob2 := probBlockAndLayer(drills, ceil, floor, layer)
 			log.Printf("%f, %f\n", prob1, prob2)
 		}
 	}
 }
 func TestStatProbBlockWithWeight(t *testing.T) {
-	drillSet := entity.DrillSet()
-	nearDrills := entity.DrillSet()[0].NearDrills(drillSet, 3)
-	SetClassicalIdwWeights(entity.DrillSet()[0], nearDrills)
-	blocks := MakeBlocks(entity.DrillSet(), probabDrill.BlockResZ)
+	drillSet := constant.GetDrillSet()
+	nearDrills := constant.GetDrillSet()[0].NearDrills(drillSet, 3)
+	SetClassicalIdwWeights(constant.GetDrillSet()[0], nearDrills)
+	blocks := MakeBlocks(constant.GetDrillSet(), probabDrill.BlockResZ)
 	for _, d := range nearDrills {
 		d.Print()
 	}
 
-	probBlock := StatProbBlockWithWeight(nearDrills, blocks[1], blocks[2])
+	probBlock := ProbBlockW(nearDrills, blocks[1], blocks[2])
 	fmt.Println(probBlock)
 
 }
 func TestExplodeHeights(t *testing.T) {
-	drill := entity.DrillSet()[0]
-	blocks := MakeBlocks(entity.DrillSet(), probabDrill.BlockResZ)
+	drill := constant.GetDrillSet()[0]
+	blocks := MakeBlocks(constant.GetDrillSet(), probabDrill.BlockResZ)
 	heights := ExplodedHeights(blocks, drill.Z, drill.GetBottomHeight())
 	drill = drill.Explode(blocks)
 	if len(heights) == len(drill.LayerHeights) {
@@ -268,8 +269,8 @@ func TestIsInPolygon(t *testing.T) {
 		}
 	}
 
-	x, y := entity.GetBoundary()
-	l, r, top, b := entity.DrillSet()[0].GetRec(entity.DrillSet())
+	x, y := constant.GetBoundary()
+	l, r, top, b := constant.GetDrillSet()[0].GetRec(constant.GetDrillSet())
 	gridx, gridy := GetGrids(probabDrill.GridXY, probabDrill.GridXY, l, r, top, b)
 	var in, notin int
 	for _, val1 := range gridx {

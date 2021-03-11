@@ -1,4 +1,4 @@
-package entity
+package constant
 
 import (
 	"io/ioutil"
@@ -9,19 +9,19 @@ import (
 	"sync"
 )
 
-var once sync.Once
+var stdLayerOnce sync.Once
 var seq *map[string]int
 //var layers *[]int
 
 //GetSeqByName return
 func GetSeqByName(name string) int {
-	init1()
+	initStdLayer()
 	return (*seq)[name]
 }
 
-//init1 init
-func init1() {
-	once.Do(func() {
+//initStdLayer init
+func initStdLayer() {
+	stdLayerOnce.Do(func() {
 		file, err := os.Open(probabDrill.StdLayer)
 		if err != nil {
 			panic(err)

@@ -1,18 +1,18 @@
-package entity
+package constant
 
 import (
-	"io/ioutil"
+	"github.com/fogleman/poissondisc"
 	"log"
 	"math"
-	"os"
 	"probabDrill"
+	"probabDrill/internal/entity"
 	"strconv"
 	"strings"
 	"sync"
 )
 
 var drillSetOnce sync.Once
-var drillSet []Drill
+var drillSet []entity.Drill
 var drillsCeil, drillsFloor float64
 var drillMap map[string]int = make(map[string]int)
 
@@ -22,7 +22,7 @@ func GetDrillsCF() (ceil, floor float64) {
 	floor = drillsFloor
 	return
 }
-func GetDrillByName(name string) (drill Drill, ok bool) {
+func GetDrillByName(name string) (drill entity.Drill, ok bool) {
 	drillSetOnce.Do(initDrillsSet)
 	if idx, ok := drillMap[name]; ok {
 		drill = drillSet[idx]
@@ -30,15 +30,15 @@ func GetDrillByName(name string) (drill Drill, ok bool) {
 	}
 	return drill, ok
 }
-func DrillSet() []Drill {
+func GetDrillSet() []entity.Drill {
 	drillSetOnce.Do(initDrillsSet)
-	var drills []Drill = make([]Drill, len(drillSet))
+	var drills []entity.Drill = make([]entity.Drill, len(drillSet))
 	copy(drills, drillSet)
 	return drills
 }
 func initDrillsSet() {
 	log.SetFlags(log.Lshortfile)
-	var drills []Drill
+	var drills []entity.Drill
 
 	//add basic
 	contents := readFile(probabDrill.Basic)
@@ -59,7 +59,7 @@ func initDrillsSet() {
 			x, _ := strconv.ParseFloat(temp[1], 64)
 			y, _ := strconv.ParseFloat(temp[2], 64)
 			z, _ := strconv.ParseFloat(temp[3], 64)
-			d := Drill{
+			d := entity.Drill{
 				Name: temp[0],
 				X:    decimal((x + probabDrill.OffX) * probabDrill.ScaleXY),
 				Y:    decimal((y + probabDrill.OffY) * probabDrill.ScaleXY),
@@ -103,47 +103,30 @@ func initDrillsSet() {
 	}
 }
 
-//common utils
-func
-readFile(path string) string {
-	file, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	content, err := ioutil.ReadAll(file)
-	return string(content)
+var helpDrillSetOnce sync.Once
+var helpDrillsSet []entity.Drill
+var helpDrillCeil, helpDrillFloor float64
+
+func GetHelpDrillSet() []entity.Drill {
+	helpDrillSetOnce.Do(initHelpDrillSet)
+	return helpDrillsSet
 }
-
-func SimpleDrillSet() (drills []Drill) {
-	var drill1, drill2, drill3, drill4 Drill
-	drill1 = drill1.MakeDrill("1", 0, 0, 0)
-	drill2 = drill1.MakeDrill("2", 1, 0, 0)
-	drill3 = drill1.MakeDrill("3", 1, 1, 0)
-	drill4 = drill1.MakeDrill("4", 0, 1, 0)
-
-	drill1.AddLayer(1, -1)
-	drill1.AddLayer(1, -2)
-	drill1.AddLayer(6, -3)
-	drill1.AddLayer(3, -4)
-
-	drill2.AddLayer(2, -1)
-	drill2.AddLayer(5, -2)
-	drill2.AddLayer(3, -3)
-	drill2.AddLayer(4, -4)
-
-	drill3.AddLayer(1, -1)
-	drill3.AddLayer(5, -2)
-	drill3.AddLayer(6, -3)
-	drill3.AddLayer(4, -4)
-
-	drill4.AddLayer(1, -1)
-	drill4.AddLayer(2, -2)
-	drill4.AddLayer(3, -3)
-	drill4.AddLayer(4, -4)
-
-	drills = []Drill{drill1, drill2, drill3, drill4}
-	return
+func GetHelpDrillsCF() (ceil, floor float64) {
+	helpDrillSetOnce.Do(initHelpDrillSet)
+	return helpDrillCeil, helpDrillFloor
+}
+func initHelpDrillSet() {
+	rdrills := GetDrillSet()
+	x0, y0, x1, y1 := drillSet[0].GetRec(rdrills)
+	points := poissondisc.Sample(x0, y0, x1, y1, probabDrill.MinDistance, probabDrill.MaxAttemptAdd, nil)
+	for _, p := range points {
+		idwDrill := genIDWDrills(drillSet, p.X, p.Y)
+		helpDrillsSet = append(helpDrillsSet, idwDrill)
+		helpDrillCeil = math.Max(helpDrillCeil, idwDrill.Z)
+		helpDrillFloor = math.Min(helpDrillFloor, idwDrill.LayerHeights[len(idwDrill.LayerHeights)-1])
+	}
+	log.SetFlags(log.Lshortfile)
+	log.Printf("len(helpDrills)=%d\n", len(helpDrillsSet))
 }
 
 var mu sync.Mutex

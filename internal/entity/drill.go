@@ -37,10 +37,10 @@ func (drill Drill) Print() {
 	log.Printf("Name: %s\nPosition:%.2f, %.2f, %.2f\nLength:%.2f\n",
 		drill.Name, drill.X, drill.Y, drill.Z, drill.GetLength())
 	fmt.Print("Layers: ")
-	printInts(drill.Layers)
+	printSliceInt(drill.Layers)
 
 	fmt.Print("Heights:")
-	printFloat64s(drill.LayerHeights)
+	printSliceFloat64(drill.LayerHeights)
 	fmt.Printf("Weights:%.4f\n\n", drill.weight)
 }
 
@@ -229,10 +229,10 @@ func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 
 	//case2: 2 layers in block
 	if ceil <= drill.Z && floor >= drill.LayerHeights[len(drill.LayerHeights)-1] {
-		//here suppose that resolution z < min layer thick,
+		//here suppose that resolution z < min layer thickness,
 		//so there are 2 layers in the block at most.
 		var bidx []int
-		var thick []float64
+		var thickness []float64
 
 		//layer surface in block.
 		for idx, h := range drill.LayerHeights {
@@ -246,15 +246,15 @@ func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 		}
 
 		l := len(bidx)
-		thick = append(thick, ceil-drill.LayerHeights[bidx[0]])
+		thickness = append(thickness, ceil-drill.LayerHeights[bidx[0]])
 		for idx := 1; idx < l; idx++ {
-			thick = append(thick,
+			thickness = append(thickness,
 				drill.LayerHeights[bidx[idx]]-drill.LayerHeights[bidx[idx-1]])
 		}
 
 		//!!
 		bidx = append(bidx, bidx[l-1]+1)
-		thick = append(thick, drill.LayerHeights[bidx[l-1]]-floor)
+		thickness = append(thickness, drill.LayerHeights[bidx[l-1]]-floor)
 		if len(bidx) > 2 {
 			log.SetFlags(log.Lshortfile | log.LstdFlags)
 			log.Println("Warning, the resolution z is too large!")
@@ -264,7 +264,7 @@ func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 
 		var maxThick float64 = -math.MaxFloat64
 		var maxIndex int = 0
-		for idx, thick := range thick {
+		for idx, thick := range thickness {
 			if math.Abs(thick) > maxThick {
 				maxThick = math.Abs(thick)
 				maxIndex = bidx[idx]
@@ -286,14 +286,14 @@ func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 	}
 	return -1, false
 }
-func printFloat64s(s []float64) () {
+func printSliceFloat64(s []float64) () {
 	fmt.Print("[")
 	for _, v := range s {
 		fmt.Printf("%+2.2f\t", v)
 	}
 	fmt.Print("]\n")
 }
-func printInts(s []int) () {
+func printSliceInt(s []int) () {
 	fmt.Print("[")
 	for _, v := range s {
 		fmt.Printf("%4d\t", v)

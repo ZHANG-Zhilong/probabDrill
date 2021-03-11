@@ -5,7 +5,7 @@ import (
 	"github.com/fogleman/poissondisc"
 	"log"
 	"math"
-	"probabDrill/internal/entity"
+	"probabDrill/internal/constant"
 	"sort"
 	"time"
 
@@ -23,7 +23,7 @@ func generatePoints() []delaunay.Point {
 	//s := math.Sqrt(float64(N) * 1.618)
 	//points := poissondisc.Sample(-s, -s, s, s, 1, 32, nil)
 	var points []poissondisc.Point
-	drills := entity.DrillSet()
+	drills := constant.GetDrillSet()
 	for _, d := range drills {
 		points = append(points, poissondisc.Point{X: d.X, Y: d.Y})
 	}

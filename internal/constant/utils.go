@@ -1,76 +1,28 @@
-package entity
+package constant
 
 import (
-	"github.com/fogleman/poissondisc"
-	"github.com/kyroy/kdtree"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
+	"os"
 	"probabDrill"
-	"sync"
+	"probabDrill/internal/entity"
+	"strconv"
 )
 
-var (
-	onceKdDrill   sync.Once
-	onceKdHelp    sync.Once
-	kdtDrills     *kdtree.KDTree
-	kdtHelpDrills *kdtree.KDTree
-)
-
-func GetNearKDrills(vdrill Drill, k int) (drills []Drill) {
-	onceKdDrill.Do(initKdDrills)
-	rst := kdtDrills.KNN(&vdrill, k)
-	for _, d := range rst {
-		if ds, ok := d.(*Drill); ok {
-			drills = append(drills, *ds)
-		}
-	}
-	return
-}
-func GetNearHelpDrills(vdrill Drill, k int) (drills []Drill) {
-	onceKdHelp.Do(initKdHelpDrills)
-	rst := kdtHelpDrills.KNN(&vdrill, k)
-	for _, d := range rst {
-		if ds, ok := d.(*Drill); ok {
-			drills = append(drills, *ds)
-		}
-	}
-	return
-}
-func initKdHelpDrills() () {
-	var (
-		x0, y0, x1, y1 float64
-		helpDrills     []kdtree.Point
-	)
-	rdrills := DrillSet()
-	x0, y0, x1, y1 = drillSet[0].GetRec(rdrills)
-	points := poissondisc.Sample(x0, y0, x1, y1, probabDrill.MinDistance, probabDrill.MaxAttemptAdd, nil)
-	for _, p := range points {
-		idwDrill := genIDWDrills(drillSet, p.X, p.Y)
-		helpDrills = append(helpDrills, &idwDrill)
-	}
-	kdtHelpDrills = kdtree.New(helpDrills)
-}
-func initKdDrills() () {
-	rdrills := DrillSet()
-	var kdDrills []kdtree.Point
-	for _, d := range rdrills {
-		kdDrills = append(kdDrills, &d)
-	}
-	kdtDrills = kdtree.New(kdDrills)
-}
-
-func genIDWDrills(drills []Drill, x, y float64) (vdrill Drill) {
+func genIDWDrills(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
 	vdrill = vdrill.MakeDrill(GenVDrillName(), x, y, 0)
-	//nearDrills := vdrill.NearDrills(drills, probabDrill.RadiusIn)
-	nearDrills := GetNearKDrills(vdrill, probabDrill.RadiusIn)
+	nearDrills := vdrill.NearDrills(drills, probabDrill.RadiusIn)
+	//nearDrills := NearKDrills(vdrill, probabDrill.RadiusIn)
 	for _, d := range nearDrills { // if the position of the vdrill is just at a real drill's position
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
 			return d
 		}
 	}
 	setClassicalIdwWeights(vdrill, nearDrills)
-	nearDrills = UnifyDrillsStrata(nearDrills, CheckSeqMinNeg)
+	nearDrills = entity.UnifyDrillsStrata(nearDrills, entity.CheckSeqMinNeg)
 	vdrill.Layers = nearDrills[0].Layers
 	var vHeights = make([]float64, len(vdrill.Layers), len(vdrill.Layers))
 	for lidx, _ := range vdrill.Layers {
@@ -91,7 +43,7 @@ func genIDWDrills(drills []Drill, x, y float64) (vdrill Drill) {
 	}
 	return vdrill
 }
-func setClassicalIdwWeights(center Drill, aroundDrills []Drill) (weights []float64) {
+func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (weights []float64) {
 	log.SetFlags(log.Lshortfile)
 	var (
 		weightSum       float64
@@ -136,4 +88,48 @@ func setClassicalIdwWeights(center Drill, aroundDrills []Drill) (weights []float
 		log.Fatalf("error, total weight:%f\n", weightSum)
 	}
 	return weights
+}
+func readFile(path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	content, err := ioutil.ReadAll(file)
+	return string(content)
+}
+func decimal(value float64) float64 {
+	value = math.Trunc(value*1e2+0.5) * 1e-2
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+	return value
+}
+func SimpleDrillSet() (drills []entity.Drill) {
+	var drill1, drill2, drill3, drill4 entity.Drill
+	drill1 = drill1.MakeDrill("1", 0, 0, 0)
+	drill2 = drill1.MakeDrill("2", 1, 0, 0)
+	drill3 = drill1.MakeDrill("3", 1, 1, 0)
+	drill4 = drill1.MakeDrill("4", 0, 1, 0)
+
+	drill1.AddLayer(1, -1)
+	drill1.AddLayer(1, -2)
+	drill1.AddLayer(6, -3)
+	drill1.AddLayer(3, -4)
+
+	drill2.AddLayer(2, -1)
+	drill2.AddLayer(5, -2)
+	drill2.AddLayer(3, -3)
+	drill2.AddLayer(4, -4)
+
+	drill3.AddLayer(1, -1)
+	drill3.AddLayer(5, -2)
+	drill3.AddLayer(6, -3)
+	drill3.AddLayer(4, -4)
+
+	drill4.AddLayer(1, -1)
+	drill4.AddLayer(2, -2)
+	drill4.AddLayer(3, -3)
+	drill4.AddLayer(4, -4)
+
+	drills = []entity.Drill{drill1, drill2, drill3, drill4}
+	return
 }
