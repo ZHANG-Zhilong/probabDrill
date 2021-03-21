@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func genIDWDrills(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
+func genIDWDrill(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
 	vdrill = vdrill.MakeDrill(GenVDrillName(), x, y, 0)
 	nearDrills := vdrill.NearKDrills(drills, probabDrill.RadiusIn)

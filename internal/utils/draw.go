@@ -36,7 +36,7 @@ func drawDrill(canvas *svg.SVG, drill *entity.Drill, x int, scaley float64) {
 	//canvas.Rect(x-probabDrill.DrillWidth/2, y0, probabDrill.DrillWidth, yb-y0,
 	//	"fill=\"none\" stroke=\"black\" stroke-width=\"1\"")
 	canvas.Text(x, yb+25, drill.Name,
-		"text-anchor:middle;font-size:7px;fill:black")
+		"text-anchor:middle;font-size:4px;fill:black")
 	for idx := 1; idx < len(drill.Layers); idx++ {
 		y := getMappedY(drill.LayerHeights[idx], scaley)
 		lasty := getMappedY(drill.LayerHeights[idx-1], scaley)
@@ -95,9 +95,7 @@ func DrawDrills(drills []entity.Drill, picPath string) {
 	height := probabDrill.CanvasHeight
 	canvas := svg.New(path)
 	canvas.Start(width, height)
-	//die zhi 原理
-	unifiedSeq := constant.GetUnifiedSeq(drills, constant.CheckSeqZiChun)
-	drills = ExtendDrills(unifiedSeq, drills)
+
 
 	mappedDrillX := []float64{0}
 	var maxDrillLength float64

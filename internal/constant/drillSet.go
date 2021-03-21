@@ -14,15 +14,15 @@ import (
 var drillSetOnce sync.Once
 var drillSet []entity.Drill
 var drillsCeil, drillsFloor float64
-var drillMap map[string]int = make(map[string]int)
+var drillMap = make(map[string]int)
 
-func GetDrillsCF() (ceil, floor float64) {
+func GetRealDrillCF() (ceil, floor float64) {
 	drillSetOnce.Do(initDrillsSet)
 	ceil = drillsCeil
 	floor = drillsFloor
 	return
 }
-func GetDrillByName(name string) (drill entity.Drill, ok bool) {
+func GetRealDrillByName(name string) (drill entity.Drill, ok bool) {
 	drillSetOnce.Do(initDrillsSet)
 	if idx, ok := drillMap[name]; ok {
 		drill = drillSet[idx]
@@ -30,7 +30,7 @@ func GetDrillByName(name string) (drill entity.Drill, ok bool) {
 	}
 	return drill, ok
 }
-func GetDrillSet() []entity.Drill {
+func GetRealDrills() []entity.Drill {
 	drillSetOnce.Do(initDrillsSet)
 	var drills []entity.Drill = make([]entity.Drill, len(drillSet))
 	copy(drills, drillSet)
@@ -107,7 +107,7 @@ var helpDrillSetOnce sync.Once
 var helpDrillsSet []entity.Drill
 var helpDrillCeil, helpDrillFloor float64
 
-func GetHelpDrillSet() []entity.Drill {
+func GetHelpDrills() []entity.Drill {
 	helpDrillSetOnce.Do(initHelpDrillSet)
 	return helpDrillsSet
 }
@@ -116,11 +116,11 @@ func GetHelpDrillsCF() (ceil, floor float64) {
 	return helpDrillCeil, helpDrillFloor
 }
 func initHelpDrillSet() {
-	rdrills := GetDrillSet()
-	x0, y0, x1, y1 := rdrills[0].GetRec(rdrills)
+	realDrills := GetRealDrills()
+	x0, y0, x1, y1 := realDrills[0].GetRec(realDrills)
 	points := poissondisc.Sample(x0, y0, x1, y1, probabDrill.MinDistance, probabDrill.MaxAttemptAdd, nil)
 	for _, p := range points {
-		idwDrill := genIDWDrills(rdrills, p.X, p.Y)
+		idwDrill := genIDWDrill(realDrills, p.X, p.Y)
 		helpDrillsSet = append(helpDrillsSet, idwDrill)
 		helpDrillCeil = math.Max(helpDrillCeil, idwDrill.Z)
 		helpDrillFloor = math.Min(helpDrillFloor, idwDrill.LayerHeights[len(idwDrill.LayerHeights)-1])

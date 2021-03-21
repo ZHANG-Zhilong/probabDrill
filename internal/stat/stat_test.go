@@ -9,18 +9,18 @@ import (
 )
 
 func TestProbLayers(t *testing.T) {
-	drillSet := constant.GetDrillSet()
+	drillSet := constant.GetRealDrills()
 	probs := ProbLayers(&drillSet)
 	fmt.Println(probs)
 }
 func TestProbBlocks(t *testing.T) {
-	drills := constant.GetDrillSet()
+	drills := constant.GetRealDrills()
 	blocks := utils.MakeBlocks(drills, 1)
 	probs := ProbBlocks(&drills, &blocks)
 	fmt.Println(probs)
 }
 func TestProbLBs(t *testing.T) {
-	//drills := entity.GetDrillSet()
+	//drills := entity.GetRealDrills()
 	//blockHeights := service.MakeBlocks(drills, 1)
 	//mat := ProbLBs(&drills, blockHeights)
 	//fmt.Println(mat)

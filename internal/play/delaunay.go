@@ -23,7 +23,7 @@ func generatePoints() []delaunay.Point {
 	//s := math.Sqrt(float64(N) * 1.618)
 	//points := poissondisc.Sample(-s, -s, s, s, 1, 32, nil)
 	var points []poissondisc.Point
-	drills := constant.GetDrillSet()
+	drills := constant.GetRealDrills()
 	for _, d := range drills {
 		points = append(points, poissondisc.Point{X: d.X, Y: d.Y})
 	}

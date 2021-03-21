@@ -8,7 +8,7 @@ import (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	drillSet := constant.GetDrillSet()
+	drillSet := constant.GetRealDrills()
 	virtualDrillsCrossGrid := service.GetGridDrills(drillSet)
 	constant.DisplayDrills(virtualDrillsCrossGrid)
 

@@ -35,7 +35,7 @@ func GetBlocksR() []float64 {
 }
 func initBlocksR() () {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	drillsCeil, drillsFloor = GetDrillsCF()
+	drillsCeil, drillsFloor = GetRealDrillCF()
 	blocksR = append(blocksR, decimal(drillsCeil))
 	for drillsCeil-probabDrill.BlockResZ > drillsFloor {
 		blocksR = append(blocksR, decimal(drillsCeil-probabDrill.BlockResZ))

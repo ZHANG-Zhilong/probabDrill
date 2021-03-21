@@ -61,13 +61,14 @@ func (drill *Drill) AddLayer(layer int) (err error) {
 	}
 	return fmt.Errorf(":add failed")
 }
-func (drill *Drill) AddLayerWithHeight(layer int, layerDepthHeight float64) {
+func (drill *Drill) AddLayerWithHeight(layer int, layerBottomHeight float64) (err error) {
 	log.SetFlags(log.Lshortfile)
 	drill.Layers = append(drill.Layers, layer)
-	if layerDepthHeight > drill.LayerHeights[len(drill.LayerHeights)-1] {
-		log.Fatal("error")
+	if layerBottomHeight > drill.LayerHeights[len(drill.LayerHeights)-1] {
+		return fmt.Errorf("layerBottomHeight > drill.LayerHeights[len(drill.LayerHeights)-1]")
 	}
-	drill.LayerHeights = append(drill.LayerHeights, layerDepthHeight)
+	drill.LayerHeights = append(drill.LayerHeights, layerBottomHeight)
+	return nil
 }
 func (drill *Drill) SetZ(z float64) {
 	drill.Z = z
@@ -276,10 +277,7 @@ func (drill Drill) GetLayerSeq(ceil, floor float64) (seq int, ok bool) {
 		bidx = append(bidx, bidx[l-1]+1)
 		thickness = append(thickness, drill.LayerHeights[bidx[l-1]]-floor)
 		if len(bidx) > 2 {
-			log.SetFlags(log.Lshortfile | log.LstdFlags)
-			log.Println("Warning, the resolution z is too large!")
-			log.Printf("param: ceil %.2f, floor %.2f, block %.2f", ceil, floor, ceil-floor)
-			log.Println(drill)
+			log.Printf("Warning, the resolution z is too large\n")
 		}
 
 		var maxThick float64 = -math.MaxFloat64
@@ -409,7 +407,7 @@ func decimal(value float64) float64 {
 }
 func (drill Drill) NearKDrills(drillSet []Drill, includeNum int) (nears []Drill) {
 
-	if includeNum > len(drillSet)&& includeNum > 1 {
+	if includeNum > len(drillSet) && includeNum > 1 {
 		includeNum = len(drillSet) - 1
 		return drill.NearKDrills(drillSet, includeNum)
 	}
@@ -476,6 +474,7 @@ func SetLengthAndZ(drill *Drill, incidentDrills []Drill) {
 		drill.Display()
 		log.Fatal("error")
 	}
+	drill.LayerHeights[0] = drill.Z
 }
 func (drill Drill) Trunc(depth float64) (drill2 Drill) {
 	var layers []int

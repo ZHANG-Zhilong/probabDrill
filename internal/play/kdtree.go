@@ -12,7 +12,7 @@ type Data struct {
 }
 
 func PlayKdTree() {
-	drillSet := constant.GetDrillSet()
+	drillSet := constant.GetRealDrills()
 	var drills []kdtree.Point
 	for _, d := range drillSet {
 		drills = append(drills, &d)

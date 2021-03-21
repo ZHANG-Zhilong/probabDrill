@@ -19,8 +19,8 @@ const Boundary string = "/Users/zhangzhilong/go/src/probabDrill/assets/boundary_
 const StdLayer string = "/Users/zhangzhilong/go/src/probabDrill/assets/std_layer_info.dat"
 
 const DrillWidth int = 20
-const CanvasWidth int = 700
-const CanvasHeight int = 500
+const CanvasWidth int = 1000
+const CanvasHeight int = 700
 const CanvasMinThickness int = 1
 const CanvasOffsetY int = 0
 

@@ -19,7 +19,7 @@ func GetBlockLayerRDrillMat() (probs *mat.Dense) {
 	return blockLayerRDrillMat
 }
 func initBlockLayerRDrillMat() {
-	drills := GetDrillSet()
+	drills := GetRealDrills()
 	blocks := GetBlocksR()
 	blockLayerRDrillMat, _ = probBlockLayerMatG(drills, blocks)
 }
@@ -34,7 +34,7 @@ func GetBlockLayerHDrillMat() (probs *mat.Dense) {
 	return blockLayerHDrillMat
 }
 func initBlockLayerHDrillMat() {
-	drills := GetHelpDrillSet()
+	drills := GetHelpDrills()
 	blocks := GetBlocksH()
 	blockLayerHDrillMat, _ = probBlockLayerMatG(drills, blocks)
 }
