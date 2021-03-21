@@ -117,10 +117,10 @@ func GetHelpDrillsCF() (ceil, floor float64) {
 }
 func initHelpDrillSet() {
 	rdrills := GetDrillSet()
-	x0, y0, x1, y1 := drillSet[0].GetRec(rdrills)
+	x0, y0, x1, y1 := rdrills[0].GetRec(rdrills)
 	points := poissondisc.Sample(x0, y0, x1, y1, probabDrill.MinDistance, probabDrill.MaxAttemptAdd, nil)
 	for _, p := range points {
-		idwDrill := genIDWDrills(drillSet, p.X, p.Y)
+		idwDrill := genIDWDrills(rdrills, p.X, p.Y)
 		helpDrillsSet = append(helpDrillsSet, idwDrill)
 		helpDrillCeil = math.Max(helpDrillCeil, idwDrill.Z)
 		helpDrillFloor = math.Min(helpDrillFloor, idwDrill.LayerHeights[len(idwDrill.LayerHeights)-1])

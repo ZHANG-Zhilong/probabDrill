@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gonum.org/v1/gonum/mat"
 	"probabDrill/internal/constant"
-	"probabDrill/internal/entity"
 	"probabDrill/internal/utils"
 	"testing"
 )
@@ -21,12 +20,12 @@ func TestProbBlocks(t *testing.T) {
 	fmt.Println(probs)
 }
 func TestProbLBs(t *testing.T) {
-	//drills := constant.GetDrillSet()
+	//drills := entity.GetDrillSet()
 	//blockHeights := service.MakeBlocks(drills, 1)
 	//mat := ProbLBs(&drills, blockHeights)
 	//fmt.Println(mat)
 	drills := constant.SimpleDrillSet()
-	entity.DisplayDrills(drills)
+	constant.DisplayDrills(drills)
 	blockHeights := utils.MakeBlocks(drills, 0.5)
 
 	pb := ProbBlocks(&drills, &blockHeights)

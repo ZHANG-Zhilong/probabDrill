@@ -87,9 +87,33 @@ func MiddleKPoints(x1, y1, x2, y2 float64, n int) (vertices []float64) {
 	}
 	return
 }
-
 func Decimal(value float64) float64 {
 	value = math.Trunc(value*1e2+0.5) * 1e-2
 	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
 	return value
+}
+
+func PercentageError(observe, estimate []float64) (pe float64, err error) {
+	var rmse float64
+	if len(observe) != len(estimate) {
+		return -1, fmt.Errorf(":input param error")
+	}
+	for idx, _ := range observe {
+		rmse += math.Pow(observe[idx]-estimate[idx], 2)
+	}
+	rmse = math.Sqrt(rmse / float64(len(observe)))
+
+	var estimateSum float64
+	for _, v := range estimate {
+		estimateSum += v
+	}
+	pe = rmse / (estimateSum / float64(len(estimate)))
+	return pe, nil
+}
+func Average(arr []float64) (avg float64) {
+	var sum float64
+	for _, v := range arr {
+		sum += v
+	}
+	return sum / float64(len(arr))
 }

@@ -10,13 +10,19 @@ import (
 )
 
 var stdLayerOnce sync.Once
-var seq *map[string]int
+var seq map[string]int
+var seq2 map[int]string
+
 //var layers *[]int
 
 //GetSeqByName return
 func GetSeqByName(name string) int {
 	initStdLayer()
-	return (*seq)[name]
+	return seq[name]
+}
+func GetNameBySeq(seq int) string {
+	initStdLayer()
+	return seq2[seq]
 }
 
 //initStdLayer init
@@ -29,12 +35,13 @@ func initStdLayer() {
 		defer file.Close()
 		content, err := ioutil.ReadAll(file)
 		contents := strings.Split(string(content), "\n")
-		nameSeq := make(map[string]int)
+		seq = make(map[string]int)
+		seq2 = make(map[int]string)
 		for _, item := range contents {
 			items := strings.Split(item, "\t")
 			id, _ := strconv.ParseInt(items[2], 10, 64)
-			nameSeq[items[0]] = int(id)
+			seq[items[0]] = int(id)
+			seq2[int(id)] = items[0]
 		}
-		seq = &nameSeq
 	})
 }

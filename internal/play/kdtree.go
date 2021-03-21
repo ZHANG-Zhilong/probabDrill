@@ -32,7 +32,7 @@ func PlayKdTree() {
 	rst := tree.KNN(dp, 3)
 	for _, d := range rst {
 		if ds, ok := d.(*entity.Drill); ok {
-			ds.Print()
+			ds.Display()
 		}
 	}
 	// [{3.00 1.00} {5.00 0.00}]

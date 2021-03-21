@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"log"
+	"probabDrill"
 	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 	"probabDrill/internal/utils"
@@ -15,13 +16,13 @@ func TestGenerateVirtualDrill(t *testing.T) {
 	drill := constant.GetDrillSet()[1]
 
 	log.Println("real drill")
-	drill.Print()
+	drill.Display()
 
 	drillSet := constant.GetDrillSet()
-	virtualDrill := GenVDrillFromRDrillsM1(drillSet, drill.X+1, drill.Y+1)
+	virtualDrill := GenVDrillFromRDrillsM1(drillSet, nil, nil, drill.X+1, drill.Y+1)
 
 	log.Println("virtual drill")
-	virtualDrill.Print()
+	virtualDrill.Display()
 }
 func TestGenerateVirtualDrill2(t *testing.T) {
 	log.SetFlags(log.Lshortfile)
@@ -50,10 +51,10 @@ func TestGenerateVirtualDrill2(t *testing.T) {
 	fmt.Println(blocks)
 	var virtualDrills []entity.Drill
 	for x := 0.0; x < 1; x += 0.1 {
-		virtualDrills = append(virtualDrills, GenVDrillFromRDrillsM1(drillSet, x, 0.5))
+		virtualDrills = append(virtualDrills, GenVDrillFromRDrillsM1(drillSet, nil, nil, x, 0.5))
 	}
 	for _, v := range virtualDrills {
-		v.Print()
+		v.Display()
 	}
 	utils.DrawDrills(virtualDrills, "m1.svg")
 }
@@ -66,13 +67,33 @@ func TestGenVDrillFromRDrillsM1(t *testing.T) {
 		}
 	}
 	var vdrills []entity.Drill
+	drillSet := constant.GetDrillSet()
 	for idx := 1; idx < len(drills); idx++ {
-		vdrillsInGap := GenVDrillsBetween(drills[idx-1], drills[idx], 3, GenVDrillFromHelpDrillsM1)
-		//vdrillsInGap := GenVDrillsBetween(drills[idx-1], drills[idx], 3, GenVDrillFromRDrillsM1)
+		vdrillsInGap := GenVDrillsBetween(drillSet, nil, nil, drills[idx-1], drills[idx], 3, GenVDrillFromHelpDrillsM1)
 		vdrills = append(vdrills, vdrillsInGap...)
 	}
-	entity.DisplayDrills(vdrills)
+	constant.DisplayDrills(vdrills)
 	utils.DrawDrills(vdrills, "./m1+idw.svg")
+}
+func TestGenVDrillM1(t *testing.T) {
+	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
+	var drills []entity.Drill
+	for _, name := range drillNames {
+		if drill, ok := constant.GetDrillByName(name); ok {
+			drills = append(drills, drill)
+		}
+	}
+	var vdrills []entity.Drill
+	drillSet := constant.GetHelpDrillSet()
+	blocks := utils.MakeBlocks(drillSet, probabDrill.BlockResZ)
+	pBlockLayerMat, _ := utils.ProbBlockLayerMatG(drillSet, blocks)
+	for idx := 1; idx < len(drills); idx++ {
+		vdrillsInGap := GenVDrillsBetween(drillSet, blocks, pBlockLayerMat,
+			drills[idx-1], drills[idx], 3, GenVDrillM1)
+		vdrills = append(vdrills, vdrillsInGap...)
+	}
+	constant.DisplayDrills(vdrills)
+	utils.DrawDrills(vdrills, "./m1+idw-new-api.svg")
 }
 func TestGenVDrillIDW(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
@@ -83,8 +104,9 @@ func TestGenVDrillIDW(t *testing.T) {
 		}
 	}
 	var vdrills []entity.Drill
+	drillSet := constant.GetDrillSet()
 	for idx := 1; idx < len(drills); idx++ {
-		bdrills := GenVDrillsBetween(drills[idx-1], drills[idx], 3, GenVDrillIDW)
+		bdrills := GenVDrillsBetween(drillSet, nil, nil, drills[idx-1], drills[idx], 3, GenVDrillIDW)
 		vdrills = append(vdrills, bdrills...)
 	}
 	utils.DrawDrills(vdrills, "./idw2.svg")
@@ -93,7 +115,8 @@ func TestGenVDrillIDW(t *testing.T) {
 func TestGenVDrillsBetween(t *testing.T) {
 	drill1 := constant.GetDrillSet()[0]
 	drill2 := constant.GetDrillSet()[1]
-	vdrills := GenVDrillsBetween(drill1, drill2, 5, GenVDrillFromRDrillsM1)
+	drillSet := constant.GetDrillSet()
+	vdrills := GenVDrillsBetween(drillSet, nil, nil, drill1, drill2, 5, GenVDrillFromRDrillsM1)
 	utils.DrawDrills(vdrills, "./between.svg")
 }
 func TestDrawDrills(t *testing.T) {
@@ -105,9 +128,8 @@ func TestDrawDrills(t *testing.T) {
 		}
 	}
 	utils.DrawDrills(drills, "./realDrill.svg")
-	entity.DisplayDrills(drills)
+	constant.DisplayDrills(drills)
 }
-
 func TestGenHelpDrills(t *testing.T) {
 	drills := GenHelpDrills()
 	fmt.Println(len(drills))

@@ -1,48 +1,58 @@
-package entity
+package constant
 
-import "log"
+import (
+	"log"
+	"probabDrill/internal/entity"
+)
 
-func UnifyDrillsStrata(drills []Drill, check func([]int) []int) []Drill {
+func GetUnifiedSeq(drills []entity.Drill, markSeqFunc func([]int) []int) (unifiedSeq []int) {
 	if len(drills) < 2 {
 		log.SetFlags(log.Lshortfile)
 		log.Fatal("error")
 		return nil
 	}
-	var repeat, nonRepeat []Drill
-	var ps [][]int
+	//split the drills to has repeat layer and no repeat layer. And obtain the repeat patterns.
+	var drillsHasRepeat, drillsNoRepeat []entity.Drill
+	var repeatPatterns [][]int
 	for _, drill := range drills {
 		if p := RepeatPattern(drill.Layers); p != nil {
-			repeat = append(repeat, drill)
-			ps = append(ps, p...)
+			drillsHasRepeat = append(drillsHasRepeat, drill)
+			repeatPatterns = append(repeatPatterns, p...)
 		} else {
-			nonRepeat = append(nonRepeat, drill)
+			drillsNoRepeat = append(drillsNoRepeat, drill)
 		}
 	}
-	var stdLayers []int
-	if len(repeat) > 0 {
-		stdLayers = repeat[0].Layers
-		for idx := 0; idx < len(repeat); idx++ {
-			layers := repeat[idx].Layers
-			stdLayers = GetUnifiedSeq(layers, stdLayers, check)
+
+	//get unifiedSeq from repeatDrill and noRepeatDrill.
+	if len(drillsHasRepeat) > 0 {
+		unifiedSeq = drillsHasRepeat[0].Layers
+		for idx := 0; idx < len(drillsHasRepeat); idx++ {
+			layers := drillsHasRepeat[idx].Layers
+			unifiedSeq = mergeSeq(layers, unifiedSeq, markSeqFunc)
 		}
 	}
-	if len(nonRepeat) > 0 {
-		if len(stdLayers) == 0 { // no repeat layer in drill.
-			stdLayers = nonRepeat[0].Layers
+
+	if len(drillsNoRepeat) > 0 {
+		if len(unifiedSeq) == 0 { // no drillsHasRepeat layer in drill.
+			unifiedSeq = drillsNoRepeat[0].Layers
 		}
-		for idx := 0; idx < len(nonRepeat); idx++ {
-			layers := nonRepeat[idx].Layers
-			MarkRepeat(layers, ps)
-			stdLayers = GetUnifiedSeq(layers, stdLayers, check)
+		for idx := 0; idx < len(drillsNoRepeat); idx++ {
+			layers := drillsNoRepeat[idx].Layers
+			MarkRepeat(layers, repeatPatterns)
+			unifiedSeq = mergeSeq(layers, unifiedSeq, markSeqFunc)
 		}
 	}
-	var stdDrills []Drill
-	for _, d := range drills {
-		stdDrills = append(stdDrills, d.StdSeq(stdLayers))
-	}
-	return stdDrills
+	return unifiedSeq
 }
-func GetUnifiedSeq(seq1, seq2 []int, check func([]int) []int) (seq []int) {
+func UnifyDrillsSeq(drills []entity.Drill, markSeqFunc func([]int) []int) []entity.Drill {
+	stdLayers := GetUnifiedSeq(drills, markSeqFunc)
+	var unifiedDrills []entity.Drill
+	for _, d := range drills {
+		unifiedDrills = append(unifiedDrills, d.UnifySeq(stdLayers))
+	}
+	return unifiedDrills
+}
+func mergeSeq(seq1, seq2 []int, check func([]int) []int) (seq []int) {
 	idx1, idx2 := 1, 1
 	seq = []int{0}
 	check(seq1)

@@ -14,15 +14,14 @@ import (
 func genIDWDrills(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	log.SetFlags(log.Lshortfile)
 	vdrill = vdrill.MakeDrill(GenVDrillName(), x, y, 0)
-	nearDrills := vdrill.NearDrills(drills, probabDrill.RadiusIn)
-	//nearDrills := NearKDrills(vdrill, probabDrill.RadiusIn)
+	nearDrills := vdrill.NearKDrills(drills, probabDrill.RadiusIn)
 	for _, d := range nearDrills { // if the position of the vdrill is just at a real drill's position
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
 			return d
 		}
 	}
 	setClassicalIdwWeights(vdrill, nearDrills)
-	nearDrills = entity.UnifyDrillsStrata(nearDrills, entity.CheckSeqMinNeg)
+	nearDrills = UnifyDrillsSeq(nearDrills, CheckSeqMinNeg)
 	vdrill.Layers = nearDrills[0].Layers
 	var vHeights = make([]float64, len(vdrill.Layers), len(vdrill.Layers))
 	for lidx, _ := range vdrill.Layers {
@@ -36,9 +35,9 @@ func genIDWDrills(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	vdrill.LayerHeights = vHeights
 	vdrill.Z = vHeights[0]
 	vdrill.GetLength()
-	vdrill.UnStdSeq()
+	vdrill.UnBlock()
 	if !vdrill.IsValid() {
-		vdrill.Print()
+		vdrill.Display()
 		log.Fatal("invalid vdrill.\n")
 	}
 	return vdrill
@@ -98,11 +97,7 @@ func readFile(path string) string {
 	content, err := ioutil.ReadAll(file)
 	return string(content)
 }
-func decimal(value float64) float64 {
-	value = math.Trunc(value*1e2+0.5) * 1e-2
-	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
-	return value
-}
+
 func SimpleDrillSet() (drills []entity.Drill) {
 	var drill1, drill2, drill3, drill4 entity.Drill
 	drill1 = drill1.MakeDrill("1", 0, 0, 0)
@@ -110,26 +105,37 @@ func SimpleDrillSet() (drills []entity.Drill) {
 	drill3 = drill1.MakeDrill("3", 1, 1, 0)
 	drill4 = drill1.MakeDrill("4", 0, 1, 0)
 
-	drill1.AddLayer(1, -1)
-	drill1.AddLayer(1, -2)
-	drill1.AddLayer(6, -3)
-	drill1.AddLayer(3, -4)
+	drill1.AddLayerWithHeight(1, -1)
+	drill1.AddLayerWithHeight(1, -2)
+	drill1.AddLayerWithHeight(6, -3)
+	drill1.AddLayerWithHeight(3, -4)
 
-	drill2.AddLayer(2, -1)
-	drill2.AddLayer(5, -2)
-	drill2.AddLayer(3, -3)
-	drill2.AddLayer(4, -4)
+	drill2.AddLayerWithHeight(2, -1)
+	drill2.AddLayerWithHeight(5, -2)
+	drill2.AddLayerWithHeight(3, -3)
+	drill2.AddLayerWithHeight(4, -4)
 
-	drill3.AddLayer(1, -1)
-	drill3.AddLayer(5, -2)
-	drill3.AddLayer(6, -3)
-	drill3.AddLayer(4, -4)
+	drill3.AddLayerWithHeight(1, -1)
+	drill3.AddLayerWithHeight(5, -2)
+	drill3.AddLayerWithHeight(6, -3)
+	drill3.AddLayerWithHeight(4, -4)
 
-	drill4.AddLayer(1, -1)
-	drill4.AddLayer(2, -2)
-	drill4.AddLayer(3, -3)
-	drill4.AddLayer(4, -4)
+	drill4.AddLayerWithHeight(1, -1)
+	drill4.AddLayerWithHeight(2, -2)
+	drill4.AddLayerWithHeight(3, -3)
+	drill4.AddLayerWithHeight(4, -4)
 
 	drills = []entity.Drill{drill1, drill2, drill3, drill4}
 	return
+}
+func DisplayDrills(drills []entity.Drill) {
+	for _, d := range drills {
+		d.Display()
+	}
+	fmt.Printf("total %d drills.", len(drills))
+}
+func decimal(value float64) float64 {
+	value = math.Trunc(value*1e2+0.5) * 1e-2
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+	return value
 }

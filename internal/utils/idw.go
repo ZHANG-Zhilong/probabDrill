@@ -7,7 +7,7 @@ import (
 	"probabDrill/internal/entity"
 )
 
-func SetClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (weights []float64) {
+func SetClassicalIdwWeights(center entity.Drill, nearDrills []entity.Drill) (weights []float64) {
 	log.SetFlags(log.Lshortfile)
 	var (
 		weightSum       float64
@@ -16,7 +16,7 @@ func SetClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 	)
 
 	//get distance
-	for idx, aroundDrill := range aroundDrills {
+	for idx, aroundDrill := range nearDrills {
 		dist := center.Distance(aroundDrill)
 		weights = append(weights, dist) //as distance
 		if dist < 1e-1 {
@@ -38,7 +38,7 @@ func SetClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 		}
 		for idx, _ := range weights { //归一化, and set int the drill.
 			weights[idx] = Decimal(weights[idx] / weightSum)
-			aroundDrills[idx].SetWeight(weights[idx])
+			nearDrills[idx].SetWeight(weights[idx])
 		}
 		weightSum = 0
 		for _, w := range weights {

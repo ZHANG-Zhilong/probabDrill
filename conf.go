@@ -6,10 +6,11 @@ const OffX float64 = -3592727.0
 const OffY float64 = -499523.0
 const ScaleXY float64 = 1
 const ScaleZ float64 = 1
-const StdLen int = 38    //len of std layer num
-const RadiusIn int = 5   //how many real drills in search radius
+const StdLen int = 38  //len of std layer num
+const RadiusIn int = 5 //how many real drills in search radius
+const SearchRadius float64 = 3000
 const IdwPow float64 = 2 //power of inverse weighting interpolation method
-const MinThicknessInDrill = 1
+const MinThicknessInDrill =1
 const MinDrillDist = 1
 
 const Layer string = "/Users/zhangzhilong/go/src/probabDrill/assets/layer_info.dat"
@@ -18,10 +19,10 @@ const Boundary string = "/Users/zhangzhilong/go/src/probabDrill/assets/boundary_
 const StdLayer string = "/Users/zhangzhilong/go/src/probabDrill/assets/std_layer_info.dat"
 
 const DrillWidth int = 20
-const CanvasWidth int = 2800
-const CanvasHeight int = 1400
-const CanvasMinThickness int = 8
-const CanvasOffsetY int = 15
+const CanvasWidth int = 700
+const CanvasHeight int = 500
+const CanvasMinThickness int = 1
+const CanvasOffsetY int = 0
 
 //poissiondisc sample param for help drill set
 const MinDistance = 500  // min distance between points
