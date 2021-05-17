@@ -4,7 +4,7 @@ import (
 	"gonum.org/v1/gonum/mat"
 	"log"
 	"math"
-	"probabDrill"
+	probabDrill "probabDrill/conf"
 	"probabDrill/internal/entity"
 	"sync"
 )

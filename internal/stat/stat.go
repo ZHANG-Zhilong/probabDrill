@@ -102,9 +102,9 @@ func probLayer(drills []entity.Drill, layer int) (prob float64) {
 	return has / total
 }
 func probBlock(drills []entity.Drill, ceil, floor float64) (prob float64) {
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	if len(drills) == 0 {
-		log.Fatal("error")
+		log.Fatal("error, stat/stat")
 	}
 	var has, total float64
 	total = float64(len(drills))

@@ -37,9 +37,51 @@ func Extend(drill entity.Drill, unifiedSeq []int, drills []entity.Drill) entity.
 	return drill
 }
 
-func ExtendDrills(unifiedSeq []int, nearDrills []entity.Drill) (extendedDrills []entity.Drill) {
-	for _, d := range nearDrills {
-		extendedDrills = append(extendedDrills, Extend(d, unifiedSeq, nearDrills))
+func Extend2(drill entity.Drill, unifiedSeq []int, drills []entity.Drill) entity.Drill {
+	//attention, drill's length question, that drill's length is not under control.
+	drill = drill.UnifySeq(unifiedSeq)
+	nearDrills := make([]entity.Drill, len(drills))
+	copy(nearDrills, drills)
+	SetClassicalIdwWeights(drill, nearDrills)
+
+	//find first layer's ceil heights equals drill's bottom
+	var tag int
+	for idx := 1; idx < len(drill.LayerHeights); idx++ {
+		if drill.LayerHeights[idx-1] == drill.BottomHeight() {
+			tag = idx
+			break
+		}
+	}
+	if tag == 0 {
+		return drill
+	}
+	for idx := tag; idx < len(drill.Layers); idx++ {
+		var thickness float64
+		for _, d := range nearDrills {
+			if thick, ok := d.LayerThickness(drill.Layers[idx]); ok {
+				thickness += thick * d.GetWeight()
+			}
+		}
+		drill.LayerHeights[idx] = drill.LayerHeights[idx-1] - thickness
+	}
+	drill.Update()
+	drill.UnBlock()
+	return drill
+}
+func ExtendDrills(unifiedSeq []int, drills []entity.Drill) (extendedDrills []entity.Drill) {
+	for idx, d := range drills {
+		if idx-1 >= 0 && idx+1 < len(drills) {
+			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []entity.Drill{drills[idx-1], drills[idx+1]}))
+			continue
+		}
+		if idx == 0 && idx+1 < len(drills) {
+			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []entity.Drill{drills[idx+1]}))
+			continue
+		}
+		if idx == len(drills)-1 && idx-1 >= 0 {
+			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []entity.Drill{drills[idx-1]}))
+			continue
+		}
 	}
 	return
 }

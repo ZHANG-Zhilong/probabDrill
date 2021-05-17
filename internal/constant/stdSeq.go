@@ -2,8 +2,9 @@ package constant
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
-	"probabDrill"
+	probabDrill "probabDrill/conf"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,6 +19,12 @@ var seq2 map[int]string
 //GetSeqByName return
 func GetSeqByName(name string) int {
 	initStdLayer()
+	if s, ok := seq[name]; ok {
+		return s
+	} else {
+		//标准层序必须一一对应，不能存在没有覆盖的地方
+		log.Fatalf("not found, name:%s\n", name)
+	}
 	return seq[name]
 }
 func GetNameBySeq(seq int) string {

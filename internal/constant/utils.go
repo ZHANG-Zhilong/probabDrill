@@ -6,14 +6,15 @@ import (
 	"log"
 	"math"
 	"os"
-	"probabDrill"
+	probabDrill "probabDrill/conf"
 	"probabDrill/internal/entity"
 	"strconv"
 )
 
-func genIDWDrill(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
+func genIDWDrill(drills []entity.Drill, x, y float64) entity.Drill {
+	x, y = decimal(x), decimal(y)
 	log.SetFlags(log.Lshortfile)
-	vdrill = vdrill.MakeDrill(GenVDrillName(), x, y, 0)
+	vdrill := drills[0].MakeDrill(GenVDrillName(), x, y, 0)
 	nearDrills := vdrill.NearKDrills(drills, probabDrill.RadiusIn)
 	for _, d := range nearDrills { // if the position of the vdrill is just at a real drill's position
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
@@ -26,7 +27,9 @@ func genIDWDrill(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	var vHeights = make([]float64, len(vdrill.Layers), len(vdrill.Layers))
 	for lidx, _ := range vdrill.Layers {
 		for _, d := range nearDrills {
-			vHeights[lidx] += decimal(d.GetWeight() * d.LayerHeights[lidx])
+			h := d.LayerHeights[lidx]
+			w := d.GetWeight()
+			vHeights[lidx] += w * h
 		}
 		if lidx-1 >= 0 && math.Abs(vHeights[lidx]-vHeights[lidx-1]) < 10e-5 {
 			vHeights[lidx] = vHeights[lidx-1]
@@ -42,7 +45,7 @@ func genIDWDrill(drills []entity.Drill, x, y float64) (vdrill entity.Drill) {
 	}
 	return vdrill
 }
-func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (weights []float64) {
+func setClassicalIdwWeights(center entity.Drill, nearDrills []entity.Drill) (weights []float64) {
 	log.SetFlags(log.Lshortfile)
 	var (
 		weightSum       float64
@@ -51,7 +54,7 @@ func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 	)
 
 	//get distance
-	for idx, aroundDrill := range aroundDrills {
+	for idx, aroundDrill := range nearDrills {
 		dist := center.Distance(aroundDrill)
 		weights = append(weights, dist) //as distance
 		if dist < 1e-1 {
@@ -73,7 +76,7 @@ func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 		}
 		for idx, _ := range weights { //归一化, and set int the drill.
 			weights[idx] = decimal(weights[idx] / weightSum)
-			aroundDrills[idx].SetWeight(weights[idx])
+			nearDrills[idx].SetWeight(weights[idx])
 		}
 		weightSum = 0
 		for _, w := range weights {
@@ -83,8 +86,11 @@ func setClassicalIdwWeights(center entity.Drill, aroundDrills []entity.Drill) (w
 	}
 
 	if math.Abs(weightSum-1) > 1e-1 {
-		log.Println(weights)
-		log.Fatalf("error, total weight:%f\n", weightSum)
+		log.Printf("center drill: %#v\n", center)
+		for _, d := range nearDrills {
+			log.Printf("dist:%f, weight:%f, near drill: %#v\n", center.Distance(d), center.GetWeight(), d)
+		}
+		log.Fatalf("error, total weight is not 1, the total weight is:%f, weights is :%#v\n", weightSum, weights)
 	}
 	return weights
 }

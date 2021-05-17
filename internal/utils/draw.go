@@ -5,7 +5,7 @@ import (
 	"log"
 	"math"
 	"os"
-	"probabDrill"
+	probabDrill "probabDrill/conf"
 	"probabDrill/internal/constant"
 	"probabDrill/internal/entity"
 	"strconv"

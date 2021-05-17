@@ -5,7 +5,7 @@ import (
 	"gonum.org/v1/gonum/mat"
 	"log"
 	"math"
-	"probabDrill"
+	probabDrill "probabDrill/conf"
 	"probabDrill/internal/entity"
 	"runtime/debug"
 )
@@ -19,6 +19,18 @@ func ProbBlocksWMat(drills []entity.Drill, blocks []float64) (probs *mat.Dense, 
 			return nil, fmt.Errorf("has invalid prob, %#v", probs)
 		}
 		probs.Set(bidx, 0, prob)
+	}
+	return
+}
+func ProbBlocks(drills []entity.Drill, blocks []float64) (probs *mat.Dense, err error) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	probs = mat.NewDense(len(blocks), 1, nil)
+	for bidx := 1; bidx < len(blocks); bidx++ {
+		prob := probBlock(drills, blocks[bidx-1], blocks[bidx])
+		if math.IsInf(prob, 10) || math.IsNaN(prob) {
+			return nil, fmt.Errorf("has invalid prob, %#v", probs)
+		}
+		probs.Set(bidx, 0, Decimal(prob))
 	}
 	return
 }
@@ -89,9 +101,10 @@ func ProbLayerW(drills []entity.Drill, ceil, floor float64, layer int) (prob flo
 }
 func probLayer(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	if len(drills) < 1 || ceil <= floor {
-		log.Fatal("error")
-		return -1
+	if len(drills) == 0 {
+		log.Fatal("input drill is empty.\n")
+	} else if ceil <= floor {
+		log.Fatalf("input param is invalid ceil<= floor, ceil = %f, floor = %f.", ceil, floor)
 	}
 
 	//p(layer) = p(block)p(layer|block)+p(blank)p(blank|layer)
@@ -121,7 +134,7 @@ func ProbBlockLayerMatG(drillSet []entity.Drill, blocks []float64) (probsMat *ma
 	for bidx := 1; bidx < len(blocks); bidx++ {
 		for lidx := 1; lidx < probabDrill.StdLen; lidx++ {
 			prob, _ := ProbBlockLayerG(drillSet, blocks[bidx-1], blocks[bidx], lidx)
-			probsMat.Set(bidx, lidx, prob)
+			probsMat.Set(bidx, lidx, Decimal(prob))
 		}
 	}
 	return probsMat, nil
@@ -137,6 +150,16 @@ func ProbBlockLayerG(drillSet []entity.Drill, ceil, floor float64, layer int) (p
 	return prob, nil
 }
 
+func ProbLayerBlockMat(drillSet []entity.Drill, blocks []float64) (probsMat *mat.Dense, err error) {
+	probsMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+	for bidx := 1; bidx < len(blocks); bidx++ {
+		for lidx := 1; lidx < probabDrill.StdLen; lidx++ {
+			prob := ProbLayerBlock(drillSet, blocks[bidx-1], blocks[bidx], lidx)
+			probsMat.Set(bidx, lidx, Decimal(prob))
+		}
+	}
+	return probsMat, nil
+}
 func ProbLayerBlock(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	//p(layer|block) = p(layerAndBlock)/p(block)
@@ -157,7 +180,6 @@ func ProbLayerBlockW(drills []entity.Drill, ceil, floor float64, layer int) (pro
 	}
 	return prob
 }
-
 
 func probBlockAndLayer(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -186,4 +208,3 @@ func probBlockAndLayerW(drills []entity.Drill, ceil, floor float64, layer int) (
 	}
 	return prob
 }
-

@@ -1,10 +1,12 @@
 package constant
 
 import (
+	"fmt"
 	"github.com/fogleman/poissondisc"
+	"github.com/spf13/viper"
 	"log"
 	"math"
-	"probabDrill"
+	probabDrill "probabDrill/conf"
 	"probabDrill/internal/entity"
 	"strconv"
 	"strings"
@@ -40,7 +42,7 @@ func initDrillsSet() {
 	log.SetFlags(log.Lshortfile)
 	var drills []entity.Drill
 
-	//add basic
+	//录入钻孔基本信息
 	contents := readFile(probabDrill.Basic)
 	cs := strings.Split(contents, "\n")
 	if len(cs) < 10 {
@@ -59,23 +61,23 @@ func initDrillsSet() {
 			x, _ := strconv.ParseFloat(temp[1], 64)
 			y, _ := strconv.ParseFloat(temp[2], 64)
 			z, _ := strconv.ParseFloat(temp[3], 64)
-			d := entity.Drill{
+			drill := entity.Drill{
 				Name: temp[0],
-				X:    decimal((x + probabDrill.OffX) * probabDrill.ScaleXY),
-				Y:    decimal((y + probabDrill.OffY) * probabDrill.ScaleXY),
-				Z:    decimal(z * probabDrill.ScaleZ),
+				X:    decimal((x + viper.GetFloat64("OffX")) * viper.GetFloat64("ScaleXY")),
+				Y:    decimal((y + viper.GetFloat64("OffY")) * viper.GetFloat64("ScaleXY")),
+				Z:    decimal((z + viper.GetFloat64("OffZ")) * viper.GetFloat64("ScaleZ")),
 			}
 
 			//add ground layers, initial value.
-			d.Layers = append(d.Layers, 0)
-			d.LayerHeights = append(d.LayerHeights, d.Z)
+			drill.Layers = append(drill.Layers, 0)
+			drill.LayerHeights = append(drill.LayerHeights, drill.Z)
 
-			drills = append(drills, d)
-			drillMap[d.Name] = len(drills) - 1
+			drills = append(drills, drill)
+			drillMap[drill.Name] = len(drills) - 1
 		}
 	}
 
-	//add layers
+	//录入钻孔层位信息
 	contents = readFile(probabDrill.Layer)
 	if strings.Index(contents, "\r\n") > 0 {
 		log.Fatal("error, the file is crlf, not lf")
@@ -86,19 +88,41 @@ func initDrillsSet() {
 		if len(temp) == 0 {
 			continue
 		}
-		var seq = GetSeqByName(temp[1])
-		if idx, ok := drillMap[temp[0]]; ok {
-			drills[idx].Layers = append(drills[idx].Layers, seq)
+		var layer = GetSeqByName(temp[1])
+		if idx, ok := drillMap[temp[0]]; ok && drills != nil {
 			depth, _ := strconv.ParseFloat(temp[2], 64)
+			depth = decimal(depth)
+			//剔除真实钻孔数据中的零厚度层
+			drills[idx].Layers = append(drills[idx].Layers, layer)
 			drills[idx].LayerHeights = append(drills[idx].LayerHeights, decimal(drills[idx].Z-depth))
 		}
 	}
 
 	for _, d := range drills {
 		if len(d.Layers) > 1 {
+			d.UnBlock()
 			drillSet = append(drillSet, d)
 			drillsCeil = math.Max(d.Z, drillsCeil)
 			drillsFloor = math.Min(drillsFloor, d.LayerHeights[len(d.LayerHeights)-1])
+		}
+	}
+
+	//告警钻孔coordinate异常情况
+	invalid := false
+	for _, d := range drillSet {
+		if math.Abs(d.X-0) > viper.GetFloat64("RealDrillDist") ||
+			math.Abs(d.Y-0) > viper.GetFloat64("RealDrillDist") ||
+			math.Abs(d.Z-0) > viper.GetFloat64("RealDrillDist") {
+			fmt.Println(d)
+			invalid = true
+		}
+	}
+	if invalid {
+		log.Fatal("invalid  drill data.")
+	}
+	for _, d := range drillSet {
+		if !d.IsValid() {
+			log.Fatal("invalid while initial drillSet.")
 		}
 	}
 }
@@ -116,17 +140,22 @@ func GetHelpDrillsCF() (ceil, floor float64) {
 	return helpDrillCeil, helpDrillFloor
 }
 func initHelpDrillSet() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	realDrills := GetRealDrills()
+
 	x0, y0, x1, y1 := realDrills[0].GetRec(realDrills)
 	points := poissondisc.Sample(x0, y0, x1, y1, probabDrill.MinDistance, probabDrill.MaxAttemptAdd, nil)
+	var helpDrills []entity.Drill
+	log.Println("initHelpDrillSet,泊松采样点数量为：", len(points))
 	for _, p := range points {
 		idwDrill := genIDWDrill(realDrills, p.X, p.Y)
-		helpDrillsSet = append(helpDrillsSet, idwDrill)
+		helpDrills = append(helpDrills, idwDrill)
 		helpDrillCeil = math.Max(helpDrillCeil, idwDrill.Z)
 		helpDrillFloor = math.Min(helpDrillFloor, idwDrill.LayerHeights[len(idwDrill.LayerHeights)-1])
 	}
-	log.SetFlags(log.Lshortfile)
-	log.Printf("len(helpDrills)=%d\n", len(helpDrillsSet))
+	helpDrillsSet = helpDrills
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	log.Printf("initHelpDrillSet,生成的有效的虚拟钻孔辅助数据为len(helpDrills)为：%d\n", len(helpDrillsSet))
 }
 
 var mu sync.Mutex

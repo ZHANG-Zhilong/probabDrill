@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"probabDrill/internal/entity"
 	"strconv"
 )
 
@@ -59,6 +60,8 @@ func GetGrids(px, py, l, r, t, b float64) (gridx, gridy []float64) {
 	gridy = append(gridy, t)
 	return
 }
+
+//find max value's index and value in []float64.
 func FindMaxFloat64s(float64s []float64) (idx int, val float64) {
 	if len(float64s) < 1 {
 		return 0, 0
@@ -67,6 +70,48 @@ func FindMaxFloat64s(float64s []float64) (idx int, val float64) {
 	for id, va := range float64s {
 		if va > val {
 			idx, val = id, va
+		}
+	}
+	return idx, val
+}
+
+func GetMean(float64s []float64) (avg float64, err error) {
+	if len(float64s) < 1 || float64s == nil {
+		return 0, nil
+	}
+	sum, _ := GetSum(float64s)
+	avg = sum / float64(len(float64s))
+	if math.IsNaN(avg) || math.IsInf(avg, 10) {
+		return 0, nil
+	}
+	return avg, nil
+}
+func GetSum(float64s []float64) (sum float64, err error) {
+	if len(float64s) < 1 || float64s == nil {
+		return 0, nil
+	}
+	for _, v := range float64s {
+		sum += v
+	}
+	if math.IsNaN(sum) || math.IsInf(sum, 10) {
+		return 0, nil
+	}
+	return sum, nil
+}
+
+//find second max value's index and value in []float64.
+func FindSecondMaxFloat64s(float64s []float64) (idx int, val float64) {
+	if len(float64s) < 1 {
+		return 0, 0
+	}
+	_, maxVal := FindMaxFloat64s(float64s)
+	idx, val = -math.MaxInt64, -math.MaxFloat64
+	for id, v := range float64s {
+		if math.Abs(v-maxVal) < 10e-7 {
+			continue
+		}
+		if v > val {
+			idx, val = id, v
 		}
 	}
 	return idx, val
@@ -80,7 +125,7 @@ func GetLine(x1, y1, x2, y2, x float64) (y float64) {
 	return
 }
 func MiddleKPoints(x1, y1, x2, y2 float64, n int) (vertices []float64) {
-	step := (x2 - x1) / float64(n)
+	step := (x2 - x1) / float64(n+1)
 	for x := x1 + step; math.Abs(x-x1) < math.Abs(x2-x1); x += step {
 		y := GetLine(x1, y1, x2, y2, x)
 		vertices = append(vertices, x, y)
@@ -94,10 +139,13 @@ func Decimal(value float64) float64 {
 }
 
 func PercentageError(observe, estimate []float64) (pe float64, err error) {
-	var rmse float64
 	if len(observe) != len(estimate) {
-		return -1, fmt.Errorf(":input param error")
+		return -1, fmt.Errorf(":PercentageError,input param error,%#v,%#v", observe, estimate)
 	}
+	if len(observe) == len(estimate) && len(observe) == 0 {
+		return -1, fmt.Errorf(":PercentageError,input param error,%#v,%#v", observe, estimate)
+	}
+	var rmse float64
 	for idx, _ := range observe {
 		rmse += math.Pow(observe[idx]-estimate[idx], 2)
 	}
@@ -108,7 +156,7 @@ func PercentageError(observe, estimate []float64) (pe float64, err error) {
 		estimateSum += v
 	}
 	pe = rmse / (estimateSum / float64(len(estimate)))
-	return pe, nil
+	return Decimal(math.Abs(pe)), nil
 }
 func Average(arr []float64) (avg float64) {
 	var sum float64
@@ -116,4 +164,56 @@ func Average(arr []float64) (avg float64) {
 		sum += v
 	}
 	return sum / float64(len(arr))
+}
+func Drill2WXD(drills []entity.Drill) (rst string) {
+	fmt.Print("hole_mtx_1 = [")
+	for didx, d := range drills {
+		fmt.Print("[[")
+		for idx := 1; idx < len(d.Layers); idx++ {
+			fmt.Print(d.Layers[idx])
+			if idx != len(d.Layers)-1 {
+				fmt.Print(",")
+			}
+		}
+		fmt.Print("],[")
+		fmt.Print(Decimal(math.Abs(d.LayerHeights[0] - d.Z)))
+		for idx := 1; idx < len(d.LayerHeights); idx++ {
+			fmt.Print(",", Decimal(d.Z-d.LayerHeights[idx]))
+		}
+		fmt.Print("]]\n")
+		if didx != len(drills)-1 {
+			fmt.Print(",")
+		}
+	}
+	fmt.Println("]")
+
+	fmt.Print("delt_h = [")
+	for idx, d := range drills {
+		fmt.Print(Decimal(d.Z))
+		if idx != len(drills)-1 {
+			fmt.Print(",")
+		}
+	}
+	fmt.Print("]\n")
+
+	fmt.Print("holes = [")
+	for _, d := range drills {
+		fmt.Print("[")
+		fmt.Print("\"", d.Name, "\"", ",")
+		fmt.Print("\"", d.Name, "\"", ",")
+		fmt.Print(d.X, ",", d.Y, ",", d.Z, ",", Decimal(d.GetLength()))
+		fmt.Print("],")
+	}
+	fmt.Print("]\n\n")
+	return
+}
+func TruncDrills(vdrills []entity.Drill) {
+	var avgBot float64
+	for _, d := range vdrills {
+		avgBot += d.BottomHeight()
+	}
+	avgBot = avgBot / float64(len(vdrills))
+	for idx, _ := range vdrills {
+		vdrills[idx] = vdrills[idx].Trunc(avgBot)
+	}
 }

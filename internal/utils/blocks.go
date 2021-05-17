@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
+	probabDrill "probabDrill/conf"
 	"probabDrill/internal/entity"
 )
 
 func MakeBlocks(drills []entity.Drill, res float64) (blocks []float64) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	drillsCeil, drillsFloor := -math.MaxFloat64, math.MaxFloat64
 	for _, d := range drills {
 		drillsCeil = math.Max(d.Z, drillsCeil)
@@ -22,6 +25,9 @@ func MakeBlocks(drills []entity.Drill, res float64) (blocks []float64) {
 
 	//the last block may be un-standard block length, whose length may less than res
 	blocks = append(blocks, Decimal(drillsFloor))
+	if len(blocks) < 3 {
+		log.Fatal("invalid block rst.")
+	}
 	return
 }
 func InterceptBlocks(blocks []float64, top, bottom float64) (heights []float64) {
@@ -38,6 +44,14 @@ func InterceptBlocks(blocks []float64, top, bottom float64) (heights []float64) 
 		}
 	}
 	heights = append(heights, Decimal(top))
+	if idxa < len(blocks) && idxb < len(blocks) {
+
+	} else {
+		log.Println("error")
+		log.Printf("idxa:%d, idxb:%d, top:%f, bottom:%f\n", idxa, idxb, top, bottom)
+		log.Printf("%#v", blocks)
+		os.Exit(-1)
+	}
 	heights = append(heights, blocks[idxa:idxb]...)
 	heights = append(heights, Decimal(bottom))
 
@@ -45,13 +59,13 @@ func InterceptBlocks(blocks []float64, top, bottom float64) (heights []float64) 
 }
 func BlocksIndex(blocks []float64, ceil, floor float64) (index int, err error) {
 	log.SetFlags(log.Lshortfile)
-	if ceil > blocks[0] || floor < blocks[len(blocks)-1] {
-		return 0, nil
+	if ceil > blocks[0] || floor < blocks[len(blocks)-1] || ceil-floor > probabDrill.BlockResZ {
+		return 0, fmt.Errorf("invalid param, ceil: %f, floor: %f, resz:%v", ceil, floor, probabDrill.BlockResZ)
 	}
 	for idx := 1; idx < len(blocks); idx++ {
 		if ceil <= blocks[idx-1] && floor >= blocks[idx] {
 			return idx, nil
 		}
 	}
-	return -1, fmt.Errorf(":invalid blocks index found")
+	return -1, fmt.Errorf(":invalid blocks index found, ceil: %f, floor: %f, blocks: %#v", ceil, floor, blocks)
 }

@@ -2,7 +2,7 @@ package constant
 
 import (
 	"log"
-	"probabDrill"
+	probabDrill "probabDrill/conf"
 	"sync"
 )
 
