@@ -1,32 +1,32 @@
 package utils
 
 import (
-	"github.com/ajstarks/svgo"
+	svg "github.com/ajstarks/svgo"
+	"github.com/spf13/viper"
 	"log"
 	"math"
 	"os"
-	probabDrill "probabDrill/conf"
+	"probabDrill/apps/probDrill/model"
 	"probabDrill/internal/constant"
-	"probabDrill/internal/entity"
 	"strconv"
 )
 
 func getMappedY(dy, scaley float64) (y int) {
 	if dy == 0 {
-		y = probabDrill.CanvasHeight / 10
-		return y + probabDrill.CanvasOffsetY
+		y = viper.GetInt("CanvasHeight") / 10
+		return y + viper.GetInt("CanvasOffSetY")
 	}
 	if dy > 0 {
-		y = probabDrill.CanvasHeight/10 - int(math.Round(scaley*dy))
-		return y + probabDrill.CanvasOffsetY
+		y = viper.GetInt("CanvasHeight")/10 - int(math.Round(scaley*dy))
+		return y + viper.GetInt("CanvasOffSetY")
 	}
 	if dy < 0 {
-		y = int(math.Round(math.Abs(scaley*dy))) + probabDrill.CanvasHeight/10
-		return y + probabDrill.CanvasOffsetY
+		y = int(math.Round(math.Abs(scaley*dy))) + viper.GetInt("CanvasHeight")/10
+		return y + viper.GetInt("CanvasOffSetY")
 	}
-	return y + probabDrill.CanvasOffsetY
+	return y + viper.GetInt("CanvasOffSetY")
 }
-func drawDrill(canvas *svg.SVG, drill *entity.Drill, x int, scaley float64) {
+func drawDrill(canvas *svg.SVG, drill *model.Drill, x int, scaley float64) {
 	if !drill.IsValid() {
 		return
 	}
@@ -41,13 +41,13 @@ func drawDrill(canvas *svg.SVG, drill *entity.Drill, x int, scaley float64) {
 		y := getMappedY(drill.LayerHeights[idx], scaley)
 		lasty := getMappedY(drill.LayerHeights[idx-1], scaley)
 		//if y-lasty < 5 {
-		//	y += entity.CanvasMinThickness
+		//	y += model.CanvasMinThickness
 		//}
 		//canvas.Line(x-probabDrill.DrillWidth/2, y, x+probabDrill.DrillWidth/2, y,
 		//	"stroke-width=\"1\" stroke=\"red\"")
 
 		name := constant.GetNameBySeq(drill.Layers[idx])
-		if lasty > 0 && y-lasty < probabDrill.CanvasMinThickness {
+		if lasty > 0 && y-lasty < viper.GetInt("CanvasMinThickness") {
 			//canvas.Text(x+2, y-1, name, "text-anchor:start;font-size:5px;fill:black")
 		} else {
 			canvas.Text(x-1, y-1, name, "text-anchor:end;font-size:5px;fill:black")
@@ -55,7 +55,7 @@ func drawDrill(canvas *svg.SVG, drill *entity.Drill, x int, scaley float64) {
 	}
 }
 
-func connect(canvas *svg.SVG, scaley float64, drill1 *entity.Drill, x1 int, drill2 *entity.Drill, x2 int) () {
+func connect(canvas *svg.SVG, scaley float64, drill1 *model.Drill, x1 int, drill2 *model.Drill, x2 int) () {
 	log.SetFlags(log.Lshortfile)
 	if len(drill1.Layers) != len(drill2.Layers) {
 		log.Fatal("error")
@@ -81,7 +81,7 @@ func connect(canvas *svg.SVG, scaley float64, drill1 *entity.Drill, x1 int, dril
 	}
 }
 
-func DrawDrills(drills []entity.Drill, picPath string) {
+func DrawDrills(drills []model.Drill, picPath string) {
 	log.SetFlags(log.Lshortfile)
 	if _, err := os.Stat(picPath); !os.IsNotExist(err) {
 		_ = os.Remove(picPath)
@@ -91,8 +91,8 @@ func DrawDrills(drills []entity.Drill, picPath string) {
 		panic(err)
 	}
 	defer path.Close()
-	width := probabDrill.CanvasWidth
-	height := probabDrill.CanvasHeight
+	width := viper.GetInt("CanvasWidth")
+	height := viper.GetInt("CanvasHeight")
 	canvas := svg.New(path)
 	canvas.Start(width, height)
 

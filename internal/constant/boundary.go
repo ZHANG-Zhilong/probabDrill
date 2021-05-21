@@ -1,8 +1,8 @@
 package constant
 
 import (
+	"github.com/spf13/viper"
 	"log"
-	probabDrill "probabDrill/conf"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,7 +17,7 @@ func GetBoundary() (x, y []float64) {
 }
 func initBoundary() {
 	log.SetFlags(log.Lshortfile)
-	contents := readFile(probabDrill.Boundary)
+	contents := readFile(viper.GetString("Boundary"))
 	if strings.Index(contents, "\r\n") > 0 {
 		log.Fatal("error, the file is crlf, not lf")
 	}
@@ -26,8 +26,9 @@ func initBoundary() {
 		temp := strings.Split(p, "  ")
 		x, _ := strconv.ParseFloat(temp[0], 64)
 		y, _ := strconv.ParseFloat(temp[1], 64)
-		x = (x + probabDrill.OffX) * probabDrill.ScaleXY
-		y = (y + probabDrill.OffY) * probabDrill.ScaleXY
+
+		x = (x + viper.GetFloat64("OffX")) * viper.GetFloat64("ScaleXY")
+		y = (y + viper.GetFloat64("OffY")) * viper.GetFloat64("ScaleXY")
 		bx = append(bx, x)
 		by = append(by, y)
 	}

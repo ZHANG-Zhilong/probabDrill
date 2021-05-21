@@ -1,13 +1,13 @@
 package utils
 
 import (
+	"github.com/spf13/viper"
 	"log"
 	"math"
-	probabDrill "probabDrill/conf"
-	"probabDrill/internal/entity"
+	"probabDrill/apps/probDrill/model"
 )
 
-func SetClassicalIdwWeights(cdrill entity.Drill, nearDrills []entity.Drill) (weights []float64) {
+func SetClassicalIdwWeights(cdrill model.Drill, nearDrills []model.Drill) (weights []float64) {
 	log.SetFlags(log.Lshortfile)
 	var (
 		weightSum       float64
@@ -18,9 +18,9 @@ func SetClassicalIdwWeights(cdrill entity.Drill, nearDrills []entity.Drill) (wei
 		log.Fatal("invalid input, that near drills is empty.\n")
 	}
 	//过滤掉过近的钻孔数据
-	//var nearDrills2 []entity.Drill
+	//var nearDrills2 []model.Drill
 	//for _, d := range nearDrills {
-	//	if cdrill.Distance(d) > probabDrill.MinDrillDist {
+	//	if cdrill.Distance(d) > viper.GetFloat64("MinDrillDist") {
 	//		nearDrills2 = append(nearDrills2, d)
 	//	}
 	//}
@@ -44,7 +44,7 @@ func SetClassicalIdwWeights(cdrill entity.Drill, nearDrills []entity.Drill) (wei
 		}
 	} else {
 		for idx, _ := range weights { //cal weight
-			weights[idx] = 1e7 / math.Pow(weights[idx], probabDrill.IdwPow)
+			weights[idx] = 1e7 / math.Pow(weights[idx], viper.GetFloat64("IdwPow"))
 			weightSum += weights[idx]
 		}
 		for idx, _ := range weights { //归一化, and set int the drill.

@@ -1,10 +1,10 @@
 package constant
 
 import (
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
 	"os"
-	probabDrill "probabDrill/conf"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,7 +35,7 @@ func GetNameBySeq(seq int) string {
 //initStdLayer init
 func initStdLayer() {
 	stdLayerOnce.Do(func() {
-		file, err := os.Open(probabDrill.StdLayer)
+		file, err := os.Open(viper.GetString("stdLayer"))
 		if err != nil {
 			panic(err)
 		}

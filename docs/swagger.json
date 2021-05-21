@@ -1,0 +1,92 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "probabDrill generation",
+        "contact": {},
+        "license": {
+            "name": "geit license."
+        },
+        "version": "1.0"
+    },
+    "host": "171.16.1.106:4399",
+    "basePath": "/v1",
+    "paths": {
+        "/genDrill": {
+            "post": {
+                "description": "get accounts",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gen"
+                ],
+                "summary": "Generation drill by idw method.",
+                "operationId": "GenIdwDrill2",
+                "parameters": [
+                    {
+                        "description": "position",
+                        "name": "x",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "description": "position",
+                        "name": "y",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/model.Drill"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.Drill": {
+            "type": "object",
+            "properties": {
+                "layerHeights": {
+                    "description": "layer's bottom height.",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "layers": {
+                    "description": "layers' seq id.",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "x": {
+                    "type": "number"
+                }
+            }
+        }
+    }
+}

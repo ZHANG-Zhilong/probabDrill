@@ -6,15 +6,14 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"math"
-	probabDrill "probabDrill/conf"
-	"probabDrill/internal/entity"
+	"probabDrill/apps/probDrill/model"
 	"strconv"
 	"strings"
 	"sync"
 )
 
 var drillSetOnce sync.Once
-var drillSet []entity.Drill
+var drillSet []model.Drill
 var drillsCeil, drillsFloor float64
 var drillMap = make(map[string]int)
 
@@ -24,7 +23,7 @@ func GetRealDrillCF() (ceil, floor float64) {
 	floor = drillsFloor
 	return
 }
-func GetRealDrillByName(name string) (drill entity.Drill, ok bool) {
+func GetRealDrillByName(name string) (drill model.Drill, ok bool) {
 	drillSetOnce.Do(initDrillsSet)
 	if idx, ok := drillMap[name]; ok {
 		drill = drillSet[idx]
@@ -32,18 +31,19 @@ func GetRealDrillByName(name string) (drill entity.Drill, ok bool) {
 	}
 	return drill, ok
 }
-func GetRealDrills() []entity.Drill {
+func GetRealDrills() []model.Drill {
 	drillSetOnce.Do(initDrillsSet)
-	var drills []entity.Drill = make([]entity.Drill, len(drillSet))
+	var drills []model.Drill = make([]model.Drill, len(drillSet))
 	copy(drills, drillSet)
 	return drills
 }
 func initDrillsSet() {
 	log.SetFlags(log.Lshortfile)
-	var drills []entity.Drill
+	var drills []model.Drill
 
 	//录入钻孔基本信息
-	contents := readFile(probabDrill.Basic)
+	//contents := readFile(probabDrill.Basic)
+	contents := readFile(viper.GetString("Basic"))
 	cs := strings.Split(contents, "\n")
 	if len(cs) < 10 {
 		log.Fatal("error split")
@@ -61,7 +61,7 @@ func initDrillsSet() {
 			x, _ := strconv.ParseFloat(temp[1], 64)
 			y, _ := strconv.ParseFloat(temp[2], 64)
 			z, _ := strconv.ParseFloat(temp[3], 64)
-			drill := entity.Drill{
+			drill := model.Drill{
 				Name: temp[0],
 				X:    decimal((x + viper.GetFloat64("OffX")) * viper.GetFloat64("ScaleXY")),
 				Y:    decimal((y + viper.GetFloat64("OffY")) * viper.GetFloat64("ScaleXY")),
@@ -78,7 +78,7 @@ func initDrillsSet() {
 	}
 
 	//录入钻孔层位信息
-	contents = readFile(probabDrill.Layer)
+	contents = readFile(viper.GetString("Layer"))
 	if strings.Index(contents, "\r\n") > 0 {
 		log.Fatal("error, the file is crlf, not lf")
 	}
@@ -128,10 +128,10 @@ func initDrillsSet() {
 }
 
 var helpDrillSetOnce sync.Once
-var helpDrillsSet []entity.Drill
+var helpDrillsSet []model.Drill
 var helpDrillCeil, helpDrillFloor float64
 
-func GetHelpDrills() []entity.Drill {
+func GetHelpDrills() []model.Drill {
 	helpDrillSetOnce.Do(initHelpDrillSet)
 	return helpDrillsSet
 }
@@ -144,8 +144,10 @@ func initHelpDrillSet() {
 	realDrills := GetRealDrills()
 
 	x0, y0, x1, y1 := realDrills[0].GetRec(realDrills)
-	points := poissondisc.Sample(x0, y0, x1, y1, probabDrill.MinDistance, probabDrill.MaxAttemptAdd, nil)
-	var helpDrills []entity.Drill
+
+
+	points := poissondisc.Sample(x0, y0, x1, y1, viper.GetFloat64("MinDistance"), viper.GetInt("MaxAttemptAdd"), nil)
+	var helpDrills []model.Drill
 	log.Println("initHelpDrillSet,泊松采样点数量为：", len(points))
 	for _, p := range points {
 		idwDrill := genIDWDrill(realDrills, p.X, p.Y)

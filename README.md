@@ -1,5 +1,6 @@
 # probabDrill
 
+//api_url:http://localhost:4399/swagger/index.html
 钻孔数据是人工录入的，因此不可避免的会出现问题。一般而言，出现的问题包括且不限于如下问题：
 
 1. 钻孔基本坐标异常（钻孔坐标数据录入错误）

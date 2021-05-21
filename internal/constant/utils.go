@@ -2,20 +2,21 @@ package constant
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
 	"math"
 	"os"
-	probabDrill "probabDrill/conf"
-	"probabDrill/internal/entity"
+	"probabDrill/apps/probDrill/model"
 	"strconv"
 )
 
-func genIDWDrill(drills []entity.Drill, x, y float64) entity.Drill {
+func genIDWDrill(drills []model.Drill, x, y float64) model.Drill {
 	x, y = decimal(x), decimal(y)
 	log.SetFlags(log.Lshortfile)
 	vdrill := drills[0].MakeDrill(GenVDrillName(), x, y, 0)
-	nearDrills := vdrill.NearKDrills(drills, probabDrill.RadiusIn)
+
+	nearDrills := vdrill.NearKDrills(drills, viper.GetInt("RadiusIn"))
 	for _, d := range nearDrills { // if the position of the vdrill is just at a real drill's position
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
 			return d
@@ -45,7 +46,7 @@ func genIDWDrill(drills []entity.Drill, x, y float64) entity.Drill {
 	}
 	return vdrill
 }
-func setClassicalIdwWeights(center entity.Drill, nearDrills []entity.Drill) (weights []float64) {
+func setClassicalIdwWeights(center model.Drill, nearDrills []model.Drill) (weights []float64) {
 	log.SetFlags(log.Lshortfile)
 	var (
 		weightSum       float64
@@ -71,7 +72,7 @@ func setClassicalIdwWeights(center entity.Drill, nearDrills []entity.Drill) (wei
 		}
 	} else {
 		for idx, _ := range weights { //cal weight
-			weights[idx] = 1e7 / math.Pow(weights[idx], probabDrill.IdwPow)
+			weights[idx] = 1e7 / math.Pow(weights[idx], viper.GetFloat64("IdwPow"))
 			weightSum += weights[idx]
 		}
 		for idx, _ := range weights { //归一化, and set int the drill.
@@ -104,8 +105,8 @@ func readFile(path string) string {
 	return string(content)
 }
 
-func SimpleDrillSet() (drills []entity.Drill) {
-	var drill1, drill2, drill3, drill4 entity.Drill
+func SimpleDrillSet() (drills []model.Drill) {
+	var drill1, drill2, drill3, drill4 model.Drill
 	drill1 = drill1.MakeDrill("1", 0, 0, 0)
 	drill2 = drill1.MakeDrill("2", 1, 0, 0)
 	drill3 = drill1.MakeDrill("3", 1, 1, 0)
@@ -131,10 +132,10 @@ func SimpleDrillSet() (drills []entity.Drill) {
 	drill4.AddLayerWithHeight(3, -3)
 	drill4.AddLayerWithHeight(4, -4)
 
-	drills = []entity.Drill{drill1, drill2, drill3, drill4}
+	drills = []model.Drill{drill1, drill2, drill3, drill4}
 	return
 }
-func DisplayDrills(drills []entity.Drill) {
+func DisplayDrills(drills []model.Drill) {
 	for _, d := range drills {
 		d.Display()
 	}

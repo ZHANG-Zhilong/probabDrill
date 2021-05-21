@@ -20,7 +20,7 @@ func TestProbBlocks(t *testing.T) {
 	fmt.Println(probs)
 }
 func TestProbLBs(t *testing.T) {
-	//drills := entity.GetRealDrills()
+	//drills := model.GetRealDrills()
 	//blockHeights := service.MakeBlocks(drills, 1)
 	//mat := ProbLBs(&drills, blockHeights)
 	//fmt.Println(mat)

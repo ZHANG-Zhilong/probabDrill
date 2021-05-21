@@ -2,14 +2,14 @@ package utils
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"math"
 	"os"
-	probabDrill "probabDrill/conf"
-	"probabDrill/internal/entity"
+	"probabDrill/apps/probDrill/model"
 )
 
-func MakeBlocks(drills []entity.Drill, res float64) (blocks []float64) {
+func MakeBlocks(drills []model.Drill, res float64) (blocks []float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	drillsCeil, drillsFloor := -math.MaxFloat64, math.MaxFloat64
 	for _, d := range drills {
@@ -59,8 +59,8 @@ func InterceptBlocks(blocks []float64, top, bottom float64) (heights []float64) 
 }
 func BlocksIndex(blocks []float64, ceil, floor float64) (index int, err error) {
 	log.SetFlags(log.Lshortfile)
-	if ceil > blocks[0] || floor < blocks[len(blocks)-1] || ceil-floor > probabDrill.BlockResZ {
-		return 0, fmt.Errorf("invalid param, ceil: %f, floor: %f, resz:%v", ceil, floor, probabDrill.BlockResZ)
+	if ceil > blocks[0] || floor < blocks[len(blocks)-1] || ceil-floor > viper.GetFloat64("BlockResZ") {
+		return 0, fmt.Errorf("invalid param, ceil: %f, floor: %f, resz:%v", ceil, floor, viper.GetFloat64("BlockResZ"))
 	}
 	for idx := 1; idx < len(blocks); idx++ {
 		if ceil <= blocks[idx-1] && floor >= blocks[idx] {

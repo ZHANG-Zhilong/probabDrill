@@ -2,10 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
-	"probabDrill"
+	"probabDrill/apps/probDrill/model"
+	probabDrill "probabDrill/conf"
 	"probabDrill/internal/constant"
-	"probabDrill/internal/entity"
 	"reflect"
 	"testing"
 )
@@ -31,19 +32,19 @@ func TestCheckSeq(t *testing.T) {
 }
 
 func TestUnifyStratum(t *testing.T) {
-	drill1 := entity.Drill{
+	drill1 := model.Drill{
 		Layers:       []int{0, 1, 2, 3, 4},
 		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
-	drill2 := entity.Drill{
+	drill2 := model.Drill{
 		Layers:       []int{0, 1, 3, 2, 4},
 		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
-	drill3 := entity.Drill{
+	drill3 := model.Drill{
 		Layers:       []int{0, 1, 2, 3, 4},
 		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
-	drills1 := []entity.Drill{drill1, drill2, drill3}
+	drills1 := []model.Drill{drill1, drill2, drill3}
 	drills1 = constant.UnifyDrillsSeq(drills1, constant.CheckSeqZiChun)
 	fmt.Println("=======")
 	constant.DisplayDrills(drills1)
@@ -51,26 +52,26 @@ func TestUnifyStratum(t *testing.T) {
 	fmt.Println("=======")
 	constant.DisplayDrills(drills1)
 
-	drill4 := entity.Drill{
+	drill4 := model.Drill{
 		Layers:       []int{0, 1, 2, 3, 4},
 		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
-	drill5 := entity.Drill{
+	drill5 := model.Drill{
 		Layers:       []int{0, 1, 2, 3, 2, 4},
 		LayerHeights: []float64{0, -1, -2, -3, -4, -5},
 	}
-	drill6 := entity.Drill{
+	drill6 := model.Drill{
 		Layers:       []int{0, 1, 3, 2, 4},
 		LayerHeights: []float64{0, -1, -2, -3, -4},
 	}
-	drills2 := []entity.Drill{drill4, drill5, drill6}
+	drills2 := []model.Drill{drill4, drill5, drill6}
 	drills2 = constant.UnifyDrillsSeq(drills2, constant.CheckSeqZiChun)
 	constant.DisplayDrills(drills2)
 	fmt.Println("=======")
 	drills2 = constant.UnifyDrillsSeq(drills2, constant.CheckSeqMinNeg)
 	constant.DisplayDrills(drills2)
 	fmt.Println("=======")
-	DrawDrills([]entity.Drill{constant.GetRealDrills()[1], constant.GetRealDrills()[2]}, "./a.svg")
+	DrawDrills([]model.Drill{constant.GetRealDrills()[1], constant.GetRealDrills()[2]}, "./a.svg")
 }
 func TestDecimal(t *testing.T) {
 	sample := []float64{1.345, 1.00000000001}
@@ -86,7 +87,7 @@ func TestDisplayDrills(t *testing.T) {
 func TestStatProbBlockLayer(t *testing.T) {
 	log.SetFlags(log.Lshortfile)
 	drills := constant.GetRealDrills()
-	blocks := MakeBlocks(drills, probabDrill.BlockResZ)
+	blocks := MakeBlocks(drills, viper.GetFloat64("BlockResZ"))
 	for idx := int(1); idx < len(blocks); idx++ {
 		p, _ := ProbBlockLayerG(drills, blocks[idx-1], blocks[idx], 2)
 		log.Println(p)
@@ -111,7 +112,7 @@ func TestGetGrid(t *testing.T) {
 }
 func TestGetLayerSeq(t *testing.T) {
 	drills := constant.GetRealDrills()
-	blocks := MakeBlocks(drills, probabDrill.BlockResZ)
+	blocks := MakeBlocks(drills, viper.GetFloat64("BlockResZ"))
 	drill0 := drills[0]
 	heights := InterceptBlocks(blocks, drill0.Z, drill0.BottomHeight())
 
@@ -127,29 +128,29 @@ func TestGetLayerSeq(t *testing.T) {
 }
 func TestExplodeDrill(t *testing.T) {
 	drill := constant.GetRealDrills()[0]
-	blocks := MakeBlocks(constant.GetRealDrills(), probabDrill.BlockResZ)
+	blocks := MakeBlocks(constant.GetRealDrills(), viper.GetFloat64("BlockResZ"))
 	drill.Display()
 	drill = drill.Explode(blocks)
 	drill.Display()
 }
 func TestStatLayer(t *testing.T) {
 	//log.SetFlags(log.Lshortfile)
-	//drill1, _ := entity.GetRealDrillByName("TZZK01")
-	//drill2, _ := entity.GetRealDrillByName("TZJT02")
-	//drill3, _ := entity.GetRealDrillByName("TZJT64")
-	//drill4, _ := entity.GetRealDrillByName("TZJT72")
-	//drills := []entity.Drill{drill1, drill2, drill3, drill4}
+	//drill1, _ := model.GetRealDrillByName("TZZK01")
+	//drill2, _ := model.GetRealDrillByName("TZJT02")
+	//drill3, _ := model.GetRealDrillByName("TZJT64")
+	//drill4, _ := model.GetRealDrillByName("TZJT72")
+	//drills := []model.Drill{drill1, drill2, drill3, drill4}
 }
 
 //func TestStats(t *testing.T) {
-//	var virtualDrill entity.Drill
+//	var virtualDrill model.Drill
 //	log.SetFlags(log.Lshortfile)
-//	virtualDrill = virtualDrill.MakeDrill(entity.GenVDrillName(), 5580, -15020, 0)
-//	blocks := MakeBlocks(entity.GetRealDrills(), probabDrill.BlockResZ)
-//	drillSet := entity.GetRealDrills()
+//	virtualDrill = virtualDrill.MakeDrill(model.GenVDrillName(), 5580, -15020, 0)
+//	blocks := MakeBlocks(model.GetRealDrills(), viper.GetFloat64("BlockResZ"))
+//	drillSet := model.GetRealDrills()
 //	nearDrills := virtualDrill.NearKDrills(drillSet, probabDrill.RadiusIn)
 //	SetClassicalIdwWeights(virtualDrill, nearDrills)
-//	entity.SetLengthAndZ(&virtualDrill, nearDrills)
+//	model.SetLengthAndZ(&virtualDrill, nearDrills)
 //	virtualDrill.LayerHeights = InterceptBlocks(blocks, virtualDrill.Z, virtualDrill.BottomHeight())
 //
 //	var probBlockWithWeights = make([]float64, len(blocks), len(blocks))
@@ -158,7 +159,7 @@ func TestStatLayer(t *testing.T) {
 //	for idx := 1; idx < len(blocks); idx++ {
 //		probBlockWithWeights[idx] = ProbBlockW(nearDrills, blocks[idx-1], blocks[idx])
 //		//probBlocks[idx] = statProbBlock(NearKDrills, blocks[idx-1], blocks[idx])
-//		//probBlockGeneral[idx] = statProbBlock(entity.GetRealDrills(), blocks[idx-1], blocks[idx])
+//		//probBlockGeneral[idx] = statProbBlock(model.GetRealDrills(), blocks[idx-1], blocks[idx])
 //	}
 //	//log.Println("p(block)")
 //	//printFloat64s(blocks)
@@ -167,12 +168,12 @@ func TestStatLayer(t *testing.T) {
 //	//printFloat64s(probBlockGeneral)
 //
 //	for idx := 1; idx < len(blocks); idx++ {
-//		var probLayers = make([]float64, probabDrill.StdLen, probabDrill.StdLen)
-//		var probBlockLayers = make([]float64, probabDrill.StdLen, probabDrill.StdLen)
-//		var probLayerBlock2s = make([]float64, probabDrill.StdLen, probabDrill.StdLen)
-//		for lidx := int(1); lidx < probabDrill.StdLen; lidx++ {
+//		var probLayers = make([]float64, viper.GetInt("StdLen"), viper.GetInt("StdLen"))
+//		var probBlockLayers = make([]float64, viper.GetInt("StdLen"), viper.GetInt("StdLen"))
+//		var probLayerBlock2s = make([]float64, viper.GetInt("StdLen"), viper.GetInt("StdLen"))
+//		for lidx := int(1); lidx < viper.GetInt("StdLen"); lidx++ {
 //			probLayers[lidx] = ProbLayerW(nearDrills, blocks[idx-1], blocks[idx], lidx)
-//			probBlockLayers[lidx] = ProbBL(entity.GetRealDrills(), blocks[idx-1], blocks[idx], lidx)
+//			probBlockLayers[lidx] = ProbBL(model.GetRealDrills(), blocks[idx-1], blocks[idx], lidx)
 //			if probBlockWithWeights[idx] >= 0.0000001 {
 //				probLayerBlock2s[lidx] = probLayers[lidx] * probBlockLayers[lidx] / probBlockWithWeights[idx]
 //			}
@@ -180,7 +181,7 @@ func TestStatLayer(t *testing.T) {
 //	}
 //}
 func TestProbLayerAndBlocksWithWeight(t *testing.T) {
-	blocks := MakeBlocks(constant.GetRealDrills(), probabDrill.BlockResZ)
+	blocks := MakeBlocks(constant.GetRealDrills(), viper.GetFloat64("BlockResZ"))
 	drills := constant.GetRealDrills()
 	drill0 := drills[0]
 	drillSet := constant.GetRealDrills()
@@ -188,7 +189,7 @@ func TestProbLayerAndBlocksWithWeight(t *testing.T) {
 	SetClassicalIdwWeights(drill0, nearDrills)
 	log.SetFlags(log.Lshortfile)
 	for idx := 1; idx < len(blocks); idx++ {
-		for layer := int(1); layer < probabDrill.StdLen; layer++ {
+		for layer := int(1); layer < viper.GetInt("StdLen"); layer++ {
 			ceil, floor := blocks[idx-1], blocks[idx]
 			prob1 := probBlockAndLayerW(nearDrills, ceil, floor, layer)
 			prob2 := probBlockAndLayer(drills, ceil, floor, layer)
@@ -200,7 +201,7 @@ func TestStatProbBlockWithWeight(t *testing.T) {
 	drillSet := constant.GetRealDrills()
 	nearDrills := constant.GetRealDrills()[0].NearKDrills(drillSet, 3)
 	SetClassicalIdwWeights(constant.GetRealDrills()[0], nearDrills)
-	blocks := MakeBlocks(constant.GetRealDrills(), probabDrill.BlockResZ)
+	blocks := MakeBlocks(constant.GetRealDrills(), viper.GetFloat64("BlockResZ"))
 	for _, d := range nearDrills {
 		d.Display()
 	}
@@ -211,7 +212,7 @@ func TestStatProbBlockWithWeight(t *testing.T) {
 }
 func TestExplodeHeights(t *testing.T) {
 	drill := constant.GetRealDrills()[0]
-	blocks := MakeBlocks(constant.GetRealDrills(), probabDrill.BlockResZ)
+	blocks := MakeBlocks(constant.GetRealDrills(), viper.GetFloat64("BlockResZ"))
 	heights := InterceptBlocks(blocks, drill.Z, drill.BottomHeight())
 	drill = drill.Explode(blocks)
 	if len(heights) == len(drill.LayerHeights) {
@@ -223,11 +224,11 @@ func TestExplodeHeights(t *testing.T) {
 	}
 }
 func TestClassicalIdw(t *testing.T) {
-	var drill1, drill2, drill3 entity.Drill
+	var drill1, drill2, drill3 model.Drill
 	drill1 = drill1.MakeDrill("1", 0, 0, 0)
 	drill2 = drill2.MakeDrill("1", 2, 0, 0)
 	drill3 = drill3.MakeDrill("1", 3, 0, 0)
-	drills := []entity.Drill{drill2, drill3}
+	drills := []model.Drill{drill2, drill3}
 	weights := SetClassicalIdwWeights(drill1, drills)
 	fmt.Println(drills)
 	fmt.Println(weights)
@@ -257,7 +258,8 @@ func TestIsInPolygon(t *testing.T) {
 
 	x, y := constant.GetBoundary()
 	l, r, top, b := constant.GetRealDrills()[0].GetRec(constant.GetRealDrills())
-	gridx, gridy := GetGrids(probabDrill.GridXY, probabDrill.GridXY, l, r, top, b)
+
+	gridx, gridy := GetGrids(viper.GetFloat64("GridXy"), viper.GetFloat64("GridXy"), l, r, top, b)
 	var in, notin int
 	for _, val1 := range gridx {
 		for _, val2 := range gridy {
@@ -334,14 +336,6 @@ func TestDrill_NearDrills(t *testing.T) {
 	for _, d := range constant.GetRealDrills() {
 		fmt.Println(d.Distance(drill), d)
 	}
-}
-
-func TestDrill_Trunc(t *testing.T) {
-	drill1 := constant.GetRealDrills()[0]
-	drill1.Display()
-	drill1.Trunc(-6).Display()
-	drill1.Trunc(-5.5).Display()
-	drill1.Trunc(-47).Display()
 }
 
 func TestDrill_Extend(t *testing.T) {

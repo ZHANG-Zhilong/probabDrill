@@ -2,17 +2,17 @@ package constant
 
 import (
 	"log"
-	"probabDrill/internal/entity"
+	"probabDrill/apps/probDrill/model"
 )
 
-func GetUnifiedSeq(drills []entity.Drill, markSeqFunc func([]int) []int) (unifiedSeq []int) {
+func GetUnifiedSeq(drills []model.Drill, markSeqFunc func([]int) []int) (unifiedSeq []int) {
 	if len(drills) < 2 {
 		log.SetFlags(log.Lshortfile)
 		log.Fatal("error")
 		return nil
 	}
 	//split the drills to has repeat layer and no repeat layer. And obtain the repeat patterns.
-	var drillsHasRepeat, drillsNoRepeat []entity.Drill
+	var drillsHasRepeat, drillsNoRepeat []model.Drill
 	var repeatPatterns [][]int
 	for _, drill := range drills {
 		if p := RepeatPattern(drill.Layers); p != nil {
@@ -44,9 +44,9 @@ func GetUnifiedSeq(drills []entity.Drill, markSeqFunc func([]int) []int) (unifie
 	}
 	return unifiedSeq
 }
-func UnifyDrillsSeq(drills []entity.Drill, markSeqFunc func([]int) []int) []entity.Drill {
+func UnifyDrillsSeq(drills []model.Drill, markSeqFunc func([]int) []int) []model.Drill {
 	stdLayers := GetUnifiedSeq(drills, markSeqFunc)
-	var unifiedDrills []entity.Drill
+	var unifiedDrills []model.Drill
 	for _, d := range drills {
 		unifiedDrills = append(unifiedDrills, d.UnifySeq(stdLayers))
 	}

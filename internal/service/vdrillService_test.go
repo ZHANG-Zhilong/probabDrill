@@ -6,8 +6,8 @@ import (
 	"gonum.org/v1/gonum/floats"
 	"gonum.org/v1/gonum/mat"
 	"log"
+	"probabDrill/apps/probDrill/model"
 	"probabDrill/internal/constant"
-	"probabDrill/internal/entity"
 	"probabDrill/internal/utils"
 	"testing"
 )
@@ -27,14 +27,14 @@ func TestPrintFigure(t *testing.T) {
 //use P(layer_ij|block_i) first max probability to fill the block of the drill.
 func TestGenVDrillsM1(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
-	var realDrills []entity.Drill
+	var realDrills []model.Drill
 	for _, name := range drillNames {
 		if drill, ok := constant.GetRealDrillByName(name); ok {
 			realDrills = append(realDrills, drill)
 		}
 	}
 	drillSet := constant.GetHelpDrills()
-	var vdrills []entity.Drill
+	var vdrills []model.Drill
 	if realDrills != nil {
 		vdrills = append(vdrills, realDrills[0])
 	}
@@ -60,14 +60,14 @@ func TestGenVDrillsM1(t *testing.T) {
 //use P(layer_ij|block_i) second to fill the block of the drill.
 func TestGenVDrillsM1Second(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
-	var realDrills []entity.Drill
+	var realDrills []model.Drill
 	for _, name := range drillNames {
 		if drill, ok := constant.GetRealDrillByName(name); ok {
 			realDrills = append(realDrills, drill)
 		}
 	}
 	drillSet := constant.GetHelpDrills()
-	var vdrills []entity.Drill
+	var vdrills []model.Drill
 	if realDrills != nil {
 		vdrills = append(vdrills, realDrills[0])
 	}
@@ -93,13 +93,13 @@ func TestGenVDrillsM1Second(t *testing.T) {
 //generate 3d geology model by interpolation method idw.
 func TestGenVDrillsIDW(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
-	var realDrills []entity.Drill
+	var realDrills []model.Drill
 	for _, name := range drillNames {
 		if drill, ok := constant.GetRealDrillByName(name); ok {
 			realDrills = append(realDrills, drill)
 		}
 	}
-	var vdrills []entity.Drill
+	var vdrills []model.Drill
 	//drillSet := constant.GetHelpDrills()
 	drillSet := constant.GetRealDrills()
 	if realDrills != nil {
@@ -131,7 +131,7 @@ func TestGenVDrillsBetween(t *testing.T) {
 func TestDrawDrills(t *testing.T) {
 	//只使用真实的钻孔数据绘制剖面图
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
-	var drills []entity.Drill
+	var drills []model.Drill
 	for _, name := range drillNames {
 		if drill, ok := constant.GetRealDrillByName(name); ok {
 			drills = append(drills, drill)
@@ -144,7 +144,7 @@ func TestDrawDrills(t *testing.T) {
 func TestRealDrillsIDW(t *testing.T) {
 	//drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
 	drillNames := []string{"BP01", "BP02"}
-	var realDrills []entity.Drill
+	var realDrills []model.Drill
 	for _, name := range drillNames {
 		if drill, ok := constant.GetRealDrillByName(name); ok {
 			realDrills = append(realDrills, drill)

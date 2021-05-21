@@ -1,28 +1,23 @@
 package main
 
 import (
-	"fmt"
-	"github.com/spf13/viper"
 	"probabDrill/apps/probDrill/router"
 	"probabDrill/cmd"
-	probabDrill "probabDrill/conf"
+	"probabDrill/conf"
+	_ "probabDrill/docs"
 )
 
-var Conf = new(probabDrill.Config)
+// @title probabDrill generation
+// @version 1.0
+// @license.name geit license.
+// @host 171.16.1.106:4399
+// @BasePath /v1
 
 func main() {
 	err := cmd.Execute()
 	if err != nil {
 		return
 	}
-	viper.SetConfigFile("./conf/config.yaml") // 指定配置文件
-	err = viper.ReadInConfig()                // 读取配置信息
-	if err != nil {                           // 读取配置信息失败
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-	if err = viper.Unmarshal(Conf); err != nil {
-		panic(fmt.Errorf("unmarshal conf failed, err:%s \n", err))
-	}
-	viper.WatchConfig()
+	conf.LoadConfig(cmd.Path)
 	router.InitRouter()
 }

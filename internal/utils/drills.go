@@ -1,13 +1,11 @@
 package utils
 
-import (
-	"probabDrill/internal/entity"
-)
+import "probabDrill/apps/probDrill/model"
 
-func Extend(drill entity.Drill, unifiedSeq []int, drills []entity.Drill) entity.Drill {
+func Extend(drill model.Drill, unifiedSeq []int, drills []model.Drill) model.Drill {
 	//attention, drill's length question, that drill's length is not under control.
 	drill = drill.UnifySeq(unifiedSeq)
-	tempDrills := make([]entity.Drill, len(drills))
+	tempDrills := make([]model.Drill, len(drills))
 	copy(tempDrills, drills)
 	nearDrills := drill.NearKDrills(tempDrills, 10)
 	SetClassicalIdwWeights(drill, nearDrills)
@@ -37,10 +35,10 @@ func Extend(drill entity.Drill, unifiedSeq []int, drills []entity.Drill) entity.
 	return drill
 }
 
-func Extend2(drill entity.Drill, unifiedSeq []int, drills []entity.Drill) entity.Drill {
+func Extend2(drill model.Drill, unifiedSeq []int, drills []model.Drill) model.Drill {
 	//attention, drill's length question, that drill's length is not under control.
 	drill = drill.UnifySeq(unifiedSeq)
-	nearDrills := make([]entity.Drill, len(drills))
+	nearDrills := make([]model.Drill, len(drills))
 	copy(nearDrills, drills)
 	SetClassicalIdwWeights(drill, nearDrills)
 
@@ -68,18 +66,18 @@ func Extend2(drill entity.Drill, unifiedSeq []int, drills []entity.Drill) entity
 	drill.UnBlock()
 	return drill
 }
-func ExtendDrills(unifiedSeq []int, drills []entity.Drill) (extendedDrills []entity.Drill) {
+func ExtendDrills(unifiedSeq []int, drills []model.Drill) (extendedDrills []model.Drill) {
 	for idx, d := range drills {
 		if idx-1 >= 0 && idx+1 < len(drills) {
-			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []entity.Drill{drills[idx-1], drills[idx+1]}))
+			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []model.Drill{drills[idx-1], drills[idx+1]}))
 			continue
 		}
 		if idx == 0 && idx+1 < len(drills) {
-			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []entity.Drill{drills[idx+1]}))
+			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []model.Drill{drills[idx+1]}))
 			continue
 		}
 		if idx == len(drills)-1 && idx-1 >= 0 {
-			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []entity.Drill{drills[idx-1]}))
+			extendedDrills = append(extendedDrills, Extend2(d, unifiedSeq, []model.Drill{drills[idx-1]}))
 			continue
 		}
 	}

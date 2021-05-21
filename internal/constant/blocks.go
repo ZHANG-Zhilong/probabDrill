@@ -1,8 +1,8 @@
 package constant
 
 import (
+	"github.com/spf13/viper"
 	"log"
-	probabDrill "probabDrill/conf"
 	"sync"
 )
 
@@ -37,9 +37,9 @@ func initBlocksR() () {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	drillsCeil, drillsFloor = GetRealDrillCF()
 	blocksR = append(blocksR, decimal(drillsCeil))
-	for drillsCeil-probabDrill.BlockResZ > drillsFloor {
-		blocksR = append(blocksR, decimal(drillsCeil-probabDrill.BlockResZ))
-		drillsCeil = drillsCeil - probabDrill.BlockResZ
+	for drillsCeil-viper.GetFloat64("BlockResZ") > drillsFloor {
+		blocksR = append(blocksR, decimal(drillsCeil-viper.GetFloat64("BlockResZ")))
+		drillsCeil = drillsCeil - viper.GetFloat64("BlockResZ")
 	}
 	//the last block may be un-standard block length, whose length may less than res
 	blocksR = append(blocksR, decimal(drillsFloor))
@@ -76,9 +76,9 @@ func initBlocksH() () {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	drillsCeil, drillsFloor = GetHelpDrillsCF()
 	blocksH = append(blocksH, decimal(drillsCeil))
-	for drillsCeil-probabDrill.BlockResZ > drillsFloor {
-		blocksH = append(blocksH, decimal(drillsCeil-probabDrill.BlockResZ))
-		drillsCeil = drillsCeil - probabDrill.BlockResZ
+	for drillsCeil-viper.GetFloat64("BlockResZ") > drillsFloor {
+		blocksH = append(blocksH, decimal(drillsCeil-viper.GetFloat64("BlockResZ")))
+		drillsCeil = drillsCeil - viper.GetFloat64("BlockResZ")
 	}
 	//the last block may be un-standard block length, whose length may less than res
 	blocksH = append(blocksH, decimal(drillsFloor))

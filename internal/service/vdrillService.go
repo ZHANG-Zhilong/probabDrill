@@ -3,21 +3,21 @@ package service
 import (
 	"fmt"
 	"github.com/fogleman/poissondisc"
+	"github.com/spf13/viper"
 	"gonum.org/v1/gonum/mat"
 	"log"
 	"math"
 	"math/rand"
-	probabDrill "probabDrill/conf"
+	"probabDrill/apps/probDrill/model"
 	"probabDrill/internal/constant"
-	"probabDrill/internal/entity"
 	"probabDrill/internal/utils"
 	"runtime/debug"
 	"time"
 )
 
-func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
+func GetGridDrills(drillSet []model.Drill) (virtualDrills []model.Drill) {
 
-	px, py := probabDrill.GridXY, probabDrill.GridXY
+	px, py := viper.GetFloat64("GridXY"), viper.GetFloat64("GridXY")
 	l, r, t, b := drillSet[0].GetRec(drillSet)
 
 	//grid to interpolate
@@ -45,19 +45,19 @@ func GetGridDrills(drillSet []entity.Drill) (virtualDrills []entity.Drill) {
 	}
 	return
 }
-func GenVDrillFromRDrillsM1(rDrills []entity.Drill, b []float64, p *mat.Dense, x, y float64) (vdrill entity.Drill) {
+func GenVDrillFromRDrillsM1(rDrills []model.Drill, b []float64, p *mat.Dense, x, y float64) (vdrill model.Drill) {
 	rDrills = constant.GetRealDrills()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
-	nearDrills := vdrill.NearKDrills(rDrills, probabDrill.RadiusIn)
+	nearDrills := vdrill.NearKDrills(rDrills, viper.GetInt("RadiusIn"))
 
 	for _, d := range nearDrills {
-		if math.Abs(x-d.X) < probabDrill.MinDrillDist && math.Abs(y-d.Y) < probabDrill.MinDrillDist {
+		if math.Abs(x-d.X) < viper.GetFloat64("MinDrillDist") && math.Abs(y-d.Y) < viper.GetFloat64("MinDrillDist") {
 			return d
 		}
 	}
 	utils.SetClassicalIdwWeights(vdrill, nearDrills)
-	entity.SetLengthAndZ(&vdrill, nearDrills)
+	model.SetLengthAndZ(&vdrill, nearDrills)
 	blocks := constant.GetBlocksR()
 	vdrill.LayerHeights = utils.InterceptBlocks(blocks, vdrill.Z, vdrill.BottomHeight())
 	//virtual(name, x, y, z, length, heights, weight)  还差 layers,
@@ -67,7 +67,7 @@ func GenVDrillFromRDrillsM1(rDrills []entity.Drill, b []float64, p *mat.Dense, x
 	pLayersWithWeightMat, _ := utils.ProbLayerWMat(nearDrills, blocks)
 	//pDrillSetBlockLayerMat, _ := utils.ProbBlockLayerMatG(rDrills, blocks)
 	pDrillSetBlockLayerMat := constant.GetBlockLayerRDrillMat()
-	var pLayerBlockMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+	var pLayerBlockMat = mat.NewDense(len(blocks), viper.GetInt("StdLen"), nil)
 	for bidx := 1; bidx < len(blocks); bidx++ { //traverse general blocks.
 		//p(layer|block0)
 		ceil, floor := blocks[bidx-1], blocks[bidx]
@@ -78,7 +78,7 @@ func GenVDrillFromRDrillsM1(rDrills []entity.Drill, b []float64, p *mat.Dense, x
 			log.Fatal("error")
 		}
 		pBlock := pBlocksWMat.At(bidx, 0)
-		for lidx := 1; lidx < probabDrill.StdLen; lidx++ { //layer[0] is ground.
+		for lidx := 1; lidx < viper.GetInt("StdLen"); lidx++ { //layer[0] is ground.
 			pBlockLayers := pDrillSetBlockLayerMat.At(bidx, lidx)
 			pLayerWithWeight := pLayersWithWeightMat.At(bidx, lidx)
 			if pBlock >= 1e-7 {
@@ -99,18 +99,18 @@ func GenVDrillFromRDrillsM1(rDrills []entity.Drill, b []float64, p *mat.Dense, x
 	return
 }
 
-func GenVDrillM1(drills []entity.Drill, blocks []float64, pBlockLayerMat *mat.Dense, x, y float64) entity.Drill {
+func GenVDrillM1(drills []model.Drill, blocks []float64, pBlockLayerMat *mat.Dense, x, y float64) model.Drill {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	//get blocks split of the study area.
 	vdrill := drills[0].MakeDrill(constant.GenVDrillName(), x, y, 0)
 
 	//get the drills near virtual drill.(target drill), if the dist < threshold the drill will be removed.
-	nearDrills := vdrill.NearKDrills(drills, probabDrill.RadiusIn)
+	nearDrills := vdrill.NearKDrills(drills, viper.GetInt("RadiusIn"))
 
 	//filter the drills too near.
 	for _, d := range nearDrills {
 		dist := d.Distance(vdrill)
-		if math.Abs(dist) < probabDrill.MinDrillDist {
+		if math.Abs(dist) < viper.GetFloat64("MinDrillDist") {
 			d.Name = "real"
 			return d
 		}
@@ -121,7 +121,7 @@ func GenVDrillM1(drills []entity.Drill, blocks []float64, pBlockLayerMat *mat.De
 	utils.SetClassicalIdwWeights(vdrill, nearDrills)
 
 	//set the length and drill.Z for virtual drill (target drill).
-	entity.SetLengthAndZ(&vdrill, nearDrills)
+	model.SetLengthAndZ(&vdrill, nearDrills)
 
 	//get the local for the virtual drill from the study area's blocks. local blocks is the subset of the blocks.
 	heights := utils.InterceptBlocks(blocks, vdrill.Z, vdrill.Z-vdrill.GetLength())
@@ -133,13 +133,13 @@ func GenVDrillM1(drills []entity.Drill, blocks []float64, pBlockLayerMat *mat.De
 	pLayersWithWeightMat, _ := utils.ProbLayerWMat(nearDrills, blocks)
 
 	//the result. P(layer|blocks)  in local area. the param P(blocks|layers) is input param.
-	var pLayerBlockMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+	var pLayerBlockMat = mat.NewDense(len(blocks), viper.GetInt("StdLen"), nil)
 
 	for bidx := 1; bidx < len(blocks); bidx++ {
 		pBlock := pBlocksWMat.At(bidx, 0)
 
 		//traverse general blocks, to generate Vector P(layer_ij|block_i)
-		for lidx := 1; lidx < probabDrill.StdLen; lidx++ { //layer[0] is ground.
+		for lidx := 1; lidx < viper.GetInt("StdLen"); lidx++ { //layer[0] is ground.
 			pBlockLayers := pBlockLayerMat.At(bidx, lidx)
 			pLayerWithWeight := pLayersWithWeightMat.At(bidx, lidx)
 			//ensure the validation of the rst.
@@ -189,17 +189,17 @@ func GenVDrillM1(drills []entity.Drill, blocks []float64, pBlockLayerMat *mat.De
 	vdrill.UnBlock()
 	return vdrill
 }
-func GenVDrillM1Second(drills []entity.Drill, blocks []float64, pBlockLayerMat *mat.Dense, x, y float64) (vdrill entity.Drill) {
+func GenVDrillM1Second(drills []model.Drill, blocks []float64, pBlockLayerMat *mat.Dense, x, y float64) (vdrill model.Drill) {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	//get blocks split of the study area.
 	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
 
 	//get the drills near virtual drill.(target drill)
-	nearDrills := vdrill.NearKDrills(drills, probabDrill.RadiusIn)
+	nearDrills := vdrill.NearKDrills(drills, viper.GetInt("RadiusIn"))
 
 	//filter the drills too near.
 	for _, d := range nearDrills {
-		if math.Abs(x-d.X) < probabDrill.MinDrillDist && math.Abs(y-d.Y) < probabDrill.MinDrillDist {
+		if math.Abs(x-d.X) < viper.GetFloat64("MinDrillDist") && math.Abs(y-d.Y) < viper.GetFloat64("MinDrillDist") {
 			d.Name = "real"
 			return d
 		}
@@ -209,7 +209,7 @@ func GenVDrillM1Second(drills []entity.Drill, blocks []float64, pBlockLayerMat *
 	utils.SetClassicalIdwWeights(vdrill, nearDrills)
 
 	//set the length and drill.Z for virtual drill (target drill).
-	entity.SetLengthAndZ(&vdrill, nearDrills)
+	model.SetLengthAndZ(&vdrill, nearDrills)
 
 	//get the local for the virtual drill from the study area's blocks. local blocks is the subset of the blocks.
 	heights := utils.InterceptBlocks(blocks, vdrill.Z, vdrill.Z-vdrill.GetLength())
@@ -221,13 +221,13 @@ func GenVDrillM1Second(drills []entity.Drill, blocks []float64, pBlockLayerMat *
 	pLayersWithWeightMat, _ := utils.ProbLayerWMat(nearDrills, blocks)
 
 	//the result. P(layer|blocks)  in local area. the param P(blocks|layers) is input param.
-	var pLayerBlockMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+	var pLayerBlockMat = mat.NewDense(len(blocks), viper.GetInt("StdLen"), nil)
 
 	for bidx := 1; bidx < len(blocks); bidx++ {
 		pBlock := pBlocksWMat.At(bidx, 0)
 
 		//traverse general blocks, to generate Vector P(layer_ij|block_i)
-		for lidx := 1; lidx < probabDrill.StdLen; lidx++ { //layer[0] is ground.
+		for lidx := 1; lidx < viper.GetInt("StdLen"); lidx++ { //layer[0] is ground.
 			pBlockLayers := pBlockLayerMat.At(bidx, lidx)
 			pLayerWithWeight := pLayersWithWeightMat.At(bidx, lidx)
 			//ensure the validation of the rst.
@@ -265,38 +265,38 @@ func GenVDrillM1Second(drills []entity.Drill, blocks []float64, pBlockLayerMat *
 	vdrill.UnBlock()
 	return
 }
-func GenVDrillsM1(drills []entity.Drill, points []float64) (vdrills []entity.Drill) {
-	blocks := utils.MakeBlocks(drills, probabDrill.BlockResZ)
+func GenVDrillsM1(drills []model.Drill, points []float64) (vdrills []model.Drill) {
+	blocks := utils.MakeBlocks(drills, viper.GetFloat64("BlockResZ"))
 	pBlockLayerMat, _ := utils.ProbBlockLayerMatG(drills, blocks)
 	for idx := 1; idx < len(points); idx += 2 {
 		vdrills = append(vdrills, GenVDrillM1(drills, blocks, pBlockLayerMat, points[idx-1], points[idx]))
 	}
 	return vdrills
 }
-func GenVDrillsM1Second(drills []entity.Drill, points []float64) (vdrills []entity.Drill) {
-	blocks := utils.MakeBlocks(drills, probabDrill.BlockResZ)
+func GenVDrillsM1Second(drills []model.Drill, points []float64) (vdrills []model.Drill) {
+	blocks := utils.MakeBlocks(drills, viper.GetFloat64("BlockResZ"))
 	pBlockLayerMat, _ := utils.ProbBlockLayerMatG(drills, blocks)
 	for idx := 1; idx < len(points); idx += 2 {
 		vdrills = append(vdrills, GenVDrillM1Second(drills, blocks, pBlockLayerMat, points[idx-1], points[idx]))
 	}
 	return vdrills
 }
-func GenVDrillFromHelpDrillsM1(helpDrills []entity.Drill, b []float64, p *mat.Dense, x, y float64) (vdrill entity.Drill) {
+func GenVDrillFromHelpDrillsM1(helpDrills []model.Drill, b []float64, p *mat.Dense, x, y float64) (vdrill model.Drill) {
 	helpDrills = constant.GetHelpDrills()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
-	nearDrills := vdrill.NearKDrills(helpDrills, probabDrill.RadiusIn)
+	nearDrills := vdrill.NearKDrills(helpDrills,viper.GetInt("RadiusIn"))
 
 	//if vdrill's position has already exist a drill, return directly
 	for _, d := range nearDrills {
-		if math.Abs(x-d.X) < probabDrill.MinDrillDist && math.Abs(y-d.Y) < probabDrill.MinDrillDist {
+		if math.Abs(x-d.X) < viper.GetFloat64("MinDrillDist") && math.Abs(y-d.Y) < viper.GetFloat64("MinDrillDist") {
 			return d
 		}
 	}
 
 	//set idw weight for incident drills
 	utils.SetClassicalIdwWeights(vdrill, nearDrills)
-	entity.SetLengthAndZ(&vdrill, nearDrills)
+	model.SetLengthAndZ(&vdrill, nearDrills)
 
 	blocks := constant.GetBlocksH()
 	vdrill.LayerHeights = utils.InterceptBlocks(blocks, vdrill.Z, vdrill.BottomHeight())
@@ -306,11 +306,12 @@ func GenVDrillFromHelpDrillsM1(helpDrills []entity.Drill, b []float64, p *mat.De
 	pDrillSetBlockLayerMat := constant.GetBlockLayerHDrillMat()
 	pBlocksWMat, _ := utils.ProbBlocksWMat(nearDrills, blocks)
 	pLayersWithWeightMat, _ := utils.ProbLayerWMat(nearDrills, blocks)
-	var pLayerBlockMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+	var pLayerBlockMat = mat.NewDense(len(blocks), viper.GetInt("StdLen"), nil)
+	viper.GetInt("StdLen")
 	//p(layer|block0)
 	for bidx := 1; bidx < len(blocks); bidx++ { //traverse general blocks.
 		pBlock := pBlocksWMat.At(bidx, 0)
-		for lidx := 1; lidx < probabDrill.StdLen; lidx++ { //layer[0] is ground.
+		for lidx := 1; lidx < viper.GetInt("StdLen"); lidx++ { //layer[0] is ground.
 			pBlockLayers := pDrillSetBlockLayerMat.At(bidx, lidx)
 			pLayerW := pLayersWithWeightMat.At(bidx, lidx)
 			if pBlock >= 1e-7 {
@@ -332,10 +333,10 @@ func GenVDrillFromHelpDrillsM1(helpDrills []entity.Drill, b []float64, p *mat.De
 	return
 }
 
-func GenVDrillIDW(drillSet []entity.Drill, blocks []float64, p *mat.Dense, x, y float64) (vdrill entity.Drill) {
+func GenVDrillIDW(drillSet []model.Drill, blocks []float64, p *mat.Dense, x, y float64) (vdrill model.Drill) {
 	log.SetFlags(log.Lshortfile)
 	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
-	nearDrills := vdrill.NearKDrills(drillSet, probabDrill.RadiusIn)
+	nearDrills := vdrill.NearKDrills(drillSet, viper.GetInt("RadiusIn"))
 
 	for _, d := range nearDrills { // if the position of the vdrill is just at a real drill's position
 		if math.Abs(x-d.X) < 0.001 && math.Abs(y-d.Y) < 0.001 {
@@ -365,35 +366,35 @@ func GenVDrillIDW(drillSet []entity.Drill, blocks []float64, p *mat.Dense, x, y 
 	}
 	return vdrill
 }
-func GenVDrillsIDW(drills []entity.Drill, points []float64) (vdrills []entity.Drill) {
+func GenVDrillsIDW(drills []model.Drill, points []float64) (vdrills []model.Drill) {
 	for idx := 1; idx < len(points); idx += 2 {
 		vdrills = append(vdrills, GenVDrillIDW(drills, nil, nil, points[idx-1], points[idx]))
 	}
 	return vdrills
 }
-func GenHelpDrills(drillSet []entity.Drill) (hdrills []entity.Drill) {
+func GenHelpDrills(drillSet []model.Drill) (hdrills []model.Drill) {
 	var x0, y0, x1, y1 float64
 	x0, y0, x1, y1 = drillSet[0].GetRec(drillSet)
-	points := poissondisc.Sample(x0, y0, x1, y1, probabDrill.MinDistance, probabDrill.MaxAttemptAdd, nil)
+	points := poissondisc.Sample(x0, y0, x1, y1, viper.GetFloat64("MinDistance"), viper.GetInt("MaxAttemptAdd"), nil)
 	for _, p := range points {
 		hdrills = append(hdrills, GenVDrillIDW(drillSet, nil, nil, p.X, p.Y))
 	}
 	return
 }
 
-type GenVDrills func([]entity.Drill, []float64) []entity.Drill
+type GenVDrills func([]model.Drill, []float64) []model.Drill
 
-func GenVDrillsBetween(drillSet []entity.Drill, drill1, drill2 entity.Drill, n int, gen GenVDrills) (vDrills []entity.Drill) {
+func GenVDrillsBetween(drillSet []model.Drill, drill1, drill2 model.Drill, n int, gen GenVDrills) (vDrills []model.Drill) {
 	log.SetFlags(log.Lshortfile)
 	vertices := utils.MiddleKPoints(drill1.X, drill1.Y, drill2.X, drill2.Y, n)
 	vDrills = append(vDrills, gen(drillSet, vertices)...)
 	return
 }
 
-func GetPeByDrill(drill1, drill2 entity.Drill) (meanPe float64) {
+func GetPeByDrill(drill1, drill2 model.Drill) (meanPe float64) {
 	//calculate the pe of the drills' different layer interface.
-	layerPEs := make([]float64, probabDrill.StdLen, probabDrill.StdLen)
-	for layer := 1; layer < probabDrill.StdLen; layer++ {
+	layerPEs := make([]float64, viper.GetInt("StdLen"), viper.GetInt("StdLen"))
+	for layer := 1; layer < viper.GetInt("StdLen"); layer++ {
 		var hasLayer int
 		var observeValues, estimateValues []float64
 		h1, e1 := drill1.LayerBottomHeight(layer)
@@ -419,10 +420,10 @@ func GetPeByDrill(drill1, drill2 entity.Drill) (meanPe float64) {
 	meanPe, _ = utils.GetMean(layerPEs)
 	return
 }
-func GetCompareDrills(drillSet []entity.Drill, ratio int, genVDrills GenVDrills) (real, compare []entity.Drill, err error) {
+func GetCompareDrills(drillSet []model.Drill, ratio int, genVDrills GenVDrills) (real, compare []model.Drill, err error) {
 
 	rand.Seed(time.Now().UnixNano())
-	var drillSet1, drillSet2 []entity.Drill
+	var drillSet1, drillSet2 []model.Drill
 
 	//drillSet1 used to compare, drillSet2 used to as drill dta.
 	//分离用于对比和插值的钻孔数据集
@@ -448,7 +449,7 @@ func GetCompareDrills(drillSet []entity.Drill, ratio int, genVDrills GenVDrills)
 	}
 	return drillSet1, estimateDrills, nil
 }
-func GetPeByArea(realDrillSet []entity.Drill, ratio int, genVDrills GenVDrills, round int) (x, y, pe []float64, err error) {
+func GetPeByArea(realDrillSet []model.Drill, ratio int, genVDrills GenVDrills, round int) (x, y, pe []float64, err error) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	for idx := 0; idx < round; idx++ {
 		compareDrills, estimateDrills, _ := GetCompareDrills(realDrillSet, ratio, genVDrills)
@@ -467,7 +468,7 @@ func GetPeByArea(realDrillSet []entity.Drill, ratio int, genVDrills GenVDrills, 
 	}
 	return
 }
-func GetPeAvgByLayer(realDrillSet []entity.Drill, ratio int, genVDrills GenVDrills) (layerPEs []float64, err error) {
+func GetPeAvgByLayer(realDrillSet []model.Drill, ratio int, genVDrills GenVDrills) (layerPEs []float64, err error) {
 	//什么情况下会返回-1？？？为何pe会大于1？
 	compareDrills, estimateDrills, _ := GetCompareDrills(realDrillSet, ratio, genVDrills)
 	//for idx, _ := range compareDrills {
@@ -475,8 +476,8 @@ func GetPeAvgByLayer(realDrillSet []entity.Drill, ratio int, genVDrills GenVDril
 	//	log.Printf("%#v\n", estimateDrills[idx])
 	//}
 	//分别计算钻孔不同地层界面之间的百分比误差
-	layerPEs = make([]float64, probabDrill.StdLen, probabDrill.StdLen)
-	for layer := 1; layer < probabDrill.StdLen; layer++ {
+	layerPEs = make([]float64, viper.GetInt("StdLen"), viper.GetInt("StdLen"))
+	for layer := 1; layer < viper.GetInt("StdLen"); layer++ {
 		var hasLayer int
 		var observeValues, estimateValues []float64
 		for idx := 0; idx < len(compareDrills); idx++ {

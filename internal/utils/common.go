@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"probabDrill/internal/entity"
+	"probabDrill/apps/probDrill/model"
 	"strconv"
 )
 
@@ -165,7 +165,7 @@ func Average(arr []float64) (avg float64) {
 	}
 	return sum / float64(len(arr))
 }
-func Drill2WXD(drills []entity.Drill) (rst string) {
+func Drill2WXD(drills []model.Drill) (rst string) {
 	fmt.Print("hole_mtx_1 = [")
 	for didx, d := range drills {
 		fmt.Print("[[")
@@ -207,7 +207,7 @@ func Drill2WXD(drills []entity.Drill) (rst string) {
 	fmt.Print("]\n\n")
 	return
 }
-func TruncDrills(vdrills []entity.Drill) {
+func TruncDrills(vdrills []model.Drill) {
 	var avgBot float64
 	for _, d := range vdrills {
 		avgBot += d.BottomHeight()

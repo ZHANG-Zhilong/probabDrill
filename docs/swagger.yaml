@@ -1,0 +1,61 @@
+basePath: /v1
+definitions:
+  model.Drill:
+    properties:
+      layerHeights:
+        description: layer's bottom height.
+        items:
+          type: number
+        type: array
+      layers:
+        description: layers' seq id.
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      x:
+        type: number
+    type: object
+host: 171.16.1.106:4399
+info:
+  contact: {}
+  license:
+    name: geit license.
+  title: probabDrill generation
+  version: "1.0"
+paths:
+  /genDrill:
+    post:
+      consumes:
+      - multipart/form-data
+      description: get accounts
+      operationId: GenIdwDrill2
+      parameters:
+      - description: position
+        in: body
+        name: x
+        required: true
+        schema:
+          type: number
+      - description: position
+        in: body
+        name: "y"
+        required: true
+        schema:
+          type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/model.Drill'
+              type: array
+            type: array
+      summary: Generation drill by idw method.
+      tags:
+      - gen
+swagger: "2.0"

@@ -2,15 +2,15 @@ package utils
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"gonum.org/v1/gonum/mat"
 	"log"
 	"math"
-	probabDrill "probabDrill/conf"
-	"probabDrill/internal/entity"
+	"probabDrill/apps/probDrill/model"
 	"runtime/debug"
 )
 
-func ProbBlocksWMat(drills []entity.Drill, blocks []float64) (probs *mat.Dense, err error) {
+func ProbBlocksWMat(drills []model.Drill, blocks []float64) (probs *mat.Dense, err error) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	probs = mat.NewDense(len(blocks), 1, nil)
 	for bidx := 1; bidx < len(blocks); bidx++ {
@@ -22,7 +22,7 @@ func ProbBlocksWMat(drills []entity.Drill, blocks []float64) (probs *mat.Dense, 
 	}
 	return
 }
-func ProbBlocks(drills []entity.Drill, blocks []float64) (probs *mat.Dense, err error) {
+func ProbBlocks(drills []model.Drill, blocks []float64) (probs *mat.Dense, err error) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	probs = mat.NewDense(len(blocks), 1, nil)
 	for bidx := 1; bidx < len(blocks); bidx++ {
@@ -34,7 +34,7 @@ func ProbBlocks(drills []entity.Drill, blocks []float64) (probs *mat.Dense, err 
 	}
 	return
 }
-func probBlock(drills []entity.Drill, ceil, floor float64) (prob float64) {
+func probBlock(drills []model.Drill, ceil, floor float64) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	for _, drill := range drills {
 		if drill.HasBlock(ceil, floor) {
@@ -44,7 +44,7 @@ func probBlock(drills []entity.Drill, ceil, floor float64) (prob float64) {
 	prob = prob / float64(len(drills))
 	return prob
 }
-func ProbBlockW(drills []entity.Drill, ceil, floor float64) (prob float64) {
+func ProbBlockW(drills []model.Drill, ceil, floor float64) (prob float64) {
 	if len(drills) < 1 || ceil <= floor {
 		debug.PrintStack()
 		log.Println(drills)
@@ -63,17 +63,17 @@ func ProbBlockW(drills []entity.Drill, ceil, floor float64) (prob float64) {
 	return prob
 }
 
-func ProbLayerWMat(drills []entity.Drill, blocks []float64) (probMat *mat.Dense, err error) {
-	probMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+func ProbLayerWMat(drills []model.Drill, blocks []float64) (probMat *mat.Dense, err error) {
+	probMat = mat.NewDense(len(blocks), viper.GetInt("StdLen"), nil)
 	for bidx := 1; bidx < len(blocks); bidx++ {
-		for lidx := 1; lidx < probabDrill.StdLen; lidx++ {
+		for lidx := 1; lidx < viper.GetInt("StdLen"); lidx++ {
 			prob := ProbLayerW(drills, blocks[bidx-1], blocks[bidx], lidx)
 			probMat.Set(bidx, lidx, prob)
 		}
 	}
 	return probMat, nil
 }
-func ProbLayerW(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
+func ProbLayerW(drills []model.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	if len(drills) < 1 || ceil <= floor {
 		log.Fatal("error")
@@ -99,7 +99,7 @@ func ProbLayerW(drills []entity.Drill, ceil, floor float64, layer int) (prob flo
 	}
 	return prob
 }
-func probLayer(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
+func probLayer(drills []model.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	if len(drills) == 0 {
 		log.Fatal("input drill is empty.\n")
@@ -129,17 +129,17 @@ func probLayer(drills []entity.Drill, ceil, floor float64, layer int) (prob floa
 	return prob
 }
 
-func ProbBlockLayerMatG(drillSet []entity.Drill, blocks []float64) (probsMat *mat.Dense, err error) {
-	probsMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+func ProbBlockLayerMatG(drillSet []model.Drill, blocks []float64) (probsMat *mat.Dense, err error) {
+	probsMat = mat.NewDense(len(blocks), viper.GetInt("StdLen"), nil)
 	for bidx := 1; bidx < len(blocks); bidx++ {
-		for lidx := 1; lidx < probabDrill.StdLen; lidx++ {
+		for lidx := 1; lidx < viper.GetInt("StdLen"); lidx++ {
 			prob, _ := ProbBlockLayerG(drillSet, blocks[bidx-1], blocks[bidx], lidx)
 			probsMat.Set(bidx, lidx, Decimal(prob))
 		}
 	}
 	return probsMat, nil
 }
-func ProbBlockLayerG(drillSet []entity.Drill, ceil, floor float64, layer int) (prob float64, err error) {
+func ProbBlockLayerG(drillSet []model.Drill, ceil, floor float64, layer int) (prob float64, err error) {
 	//p(block|layer) = p(blockAndLayer)/p(layer)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	pLayer := probLayer(drillSet, ceil, floor, layer)
@@ -150,17 +150,17 @@ func ProbBlockLayerG(drillSet []entity.Drill, ceil, floor float64, layer int) (p
 	return prob, nil
 }
 
-func ProbLayerBlockMat(drillSet []entity.Drill, blocks []float64) (probsMat *mat.Dense, err error) {
-	probsMat = mat.NewDense(len(blocks), probabDrill.StdLen, nil)
+func ProbLayerBlockMat(drillSet []model.Drill, blocks []float64) (probsMat *mat.Dense, err error) {
+	probsMat = mat.NewDense(len(blocks), viper.GetInt("StdLen"), nil)
 	for bidx := 1; bidx < len(blocks); bidx++ {
-		for lidx := 1; lidx < probabDrill.StdLen; lidx++ {
+		for lidx := 1; lidx < viper.GetInt("StdLen"); lidx++ {
 			prob := ProbLayerBlock(drillSet, blocks[bidx-1], blocks[bidx], lidx)
 			probsMat.Set(bidx, lidx, Decimal(prob))
 		}
 	}
 	return probsMat, nil
 }
-func ProbLayerBlock(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
+func ProbLayerBlock(drills []model.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	//p(layer|block) = p(layerAndBlock)/p(block)
 	pBlockAndLayer := probBlockAndLayer(drills, ceil, floor, layer)
@@ -170,7 +170,7 @@ func ProbLayerBlock(drills []entity.Drill, ceil, floor float64, layer int) (prob
 	}
 	return prob
 }
-func ProbLayerBlockW(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
+func ProbLayerBlockW(drills []model.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	//p(layer|block) = p(layerAndBlock)/p(block)
 	probBlockAndLayerWithWeight := probBlockAndLayerW(drills, ceil, floor, layer)
@@ -181,7 +181,7 @@ func ProbLayerBlockW(drills []entity.Drill, ceil, floor float64, layer int) (pro
 	return prob
 }
 
-func probBlockAndLayer(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
+func probBlockAndLayer(drills []model.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	//p(blockAndLayer)
 	for _, drill := range drills {
@@ -195,7 +195,7 @@ func probBlockAndLayer(drills []entity.Drill, ceil, floor float64, layer int) (p
 	}
 	return prob
 }
-func probBlockAndLayerW(drills []entity.Drill, ceil, floor float64, layer int) (prob float64) {
+func probBlockAndLayerW(drills []model.Drill, ceil, floor float64, layer int) (prob float64) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	for _, drill := range drills {
 		if seq, ok := drill.GetLayerSeq(ceil, floor); ok && seq == layer {
