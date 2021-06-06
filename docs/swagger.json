@@ -1,19 +1,295 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "probabDrill generation",
+        "title": "基于沉积序列的三维地层概率模型研究",
         "contact": {},
         "license": {
-            "name": "geit license."
+            "name": "中山大学岩土工程与信息技术研究中心"
         },
         "version": "1.0"
     },
-    "host": "171.16.1.106:4399",
+    "host": "171.16.1.107:4399",
     "basePath": "/v1",
     "paths": {
-        "/genDrill": {
-            "post": {
-                "description": "get accounts",
+        "/err/DrillAroundPeCloud": {
+            "get": {
+                "description": "真实钻孔周围虚拟钻孔的百分比误差，应用反距离插值方法 [][]float64{xs, ys, pes}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "误差评估"
+                ],
+                "summary": "真实钻孔周围500米虚拟钻孔的百分比误差",
+                "operationId": "DrillAroundPeCloud",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "TZZK06",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/err/DrillAroundPeCloudM1": {
+            "get": {
+                "description": "真实钻孔周围虚拟钻孔的百分比误差，应用反距离插值方法 [][]float64{xs, ys, pes}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "误差评估"
+                ],
+                "summary": "真实钻孔周围500米虚拟钻孔的百分比误差",
+                "operationId": "DrillAroundPeCloudM1",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "TZZK06",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/err/GetAvgPEByLayerIDW": {
+            "get": {
+                "description": "获取研究区域内钻孔钻孔分层PE，应用反距离插值方法",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "误差评估"
+                ],
+                "summary": "钻孔分层PE",
+                "operationId": "GetAvgPEByLayerIDW",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/err/GetAvgPEByLayerM1": {
+            "get": {
+                "description": "获取研究区域内钻孔钻孔分层PE，应用反距离插值方法",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "误差评估"
+                ],
+                "summary": "钻孔分层PE",
+                "operationId": "GetAvgPEByLayerM1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/err/GetStudyAreaAvgDrillPEIdw": {
+            "get": {
+                "description": "获取研究区域内钻孔平均百分比误差，需要自行获取研究区域的矩形边界",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "误差评估"
+                ],
+                "summary": "获取研究区域内钻孔平均百分比误差反距离插值方法",
+                "operationId": "GetStudyAreaAvgDrillPEIdw",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/err/GetStudyAreaAvgDrillPEM1": {
+            "get": {
+                "description": "获取研究区域内钻孔平均百分比误差，需要自行获取研究区域的矩形边界",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "误差评估"
+                ],
+                "summary": "获取研究区域内钻孔平均百分比误差概率模型构建方法",
+                "operationId": "GetStudyAreaAvgDrillPEM1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/GenIdwDrill": {
+            "get": {
+                "description": "在特定位置生成钻孔数据，采用反距离插值方法",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "服务"
+                ],
+                "summary": "生成反距离插值的虚拟钻孔数据",
+                "operationId": "GenIdwDrill",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "position",
+                        "name": "x",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "position",
+                        "name": "y",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/GenM1Drill": {
+            "get": {
+                "description": "在特定位置生成钻孔数据，采用基于沉积序列的三维地层概率模型构建方法",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "服务"
+                ],
+                "summary": "生成概率模型虚拟钻孔数据",
+                "operationId": "GenM1Drill",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "position",
+                        "name": "x",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "position",
+                        "name": "y",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/GenM1DrillSecond": {
+            "get": {
+                "description": "在特定位置生成钻孔数据，采用基于沉积序列的三维地层概率模型构建方法",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "服务"
+                ],
+                "summary": "生成次大概率模型虚拟钻孔数据",
+                "operationId": "GenM1DrillSecond",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "position",
+                        "name": "x",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "position",
+                        "name": "y",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/utils/GetRec": {
+            "get": {
+                "description": "获取研究区域内左下和右上角点坐标[x1,y1,x2,y2]",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工具类"
+                ],
+                "summary": "获取研究区域内左下和右上角点坐标",
+                "operationId": "GetRec",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/utils/IsValidPoint": {
+            "get": {
+                "description": "钻孔位置是否在边界内",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -21,40 +297,87 @@
                     "application/json"
                 ],
                 "tags": [
-                    "gen"
+                    "工具类"
                 ],
-                "summary": "Generation drill by idw method.",
-                "operationId": "GenIdwDrill2",
+                "summary": "钻孔位置是否有效",
+                "operationId": "IsValidPoint",
                 "parameters": [
                     {
-                        "description": "position",
+                        "type": "number",
+                        "description": "x",
                         "name": "x",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
+                        "in": "query",
+                        "required": true
                     },
                     {
-                        "description": "position",
+                        "type": "number",
+                        "description": "y",
                         "name": "y",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
+                        "description": "{\"true\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/utils/ProbBlocks": {
+            "get": {
+                "description": "获取研究区域内不同深度范围内blocks出现的概率",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工具类"
+                ],
+                "summary": "研究区域内block概率矩阵",
+                "operationId": "ProbBlocks",
+                "responses": {
+                    "200": {
                         "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/utils/queryDrill": {
+            "get": {
+                "description": "钻孔位置是否在边界内",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "工具类"
+                ],
+                "summary": "钻孔位置是否有效",
+                "operationId": "QueryDrill",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "TZZK06",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "return queried drill, TZZK05",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/model.Drill"
-                                }
+                                "$ref": "#/definitions/model.Drill"
                             }
                         }
                     }

@@ -43,7 +43,8 @@ func initDrillsSet() {
 
 	//录入钻孔基本信息
 	//contents := readFile(probabDrill.Basic)
-	contents := readFile(viper.GetString("Basic"))
+	basic := viper.GetString("Basic")
+	contents := readFile(basic)
 	cs := strings.Split(contents, "\n")
 	if len(cs) < 10 {
 		log.Fatal("error split")
@@ -144,7 +145,6 @@ func initHelpDrillSet() {
 	realDrills := GetRealDrills()
 
 	x0, y0, x1, y1 := realDrills[0].GetRec(realDrills)
-
 
 	points := poissondisc.Sample(x0, y0, x1, y1, viper.GetFloat64("MinDistance"), viper.GetInt("MaxAttemptAdd"), nil)
 	var helpDrills []model.Drill

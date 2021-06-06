@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/viper"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
-	"net/http"
 	"probabDrill/apps/probDrill/apis"
 	"strings"
 )
@@ -14,24 +13,38 @@ func InitRouter() {
 	r := gin.Default()
 	r.RedirectTrailingSlash = true
 	r.Use(apis.CostTime())
-	r.LoadHTMLGlob("template/*")
+	r.LoadHTMLGlob("./*.md")
 	r.Handle("GET", "/", func(context *gin.Context) {
-		context.HTML(http.StatusOK, "index.html", nil)
+		//context.HTML(http.StatusOK, "index.html", nil)
+		context.File("./README.md")
 	})
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	v1g := r.Group("/v1")
+	geng := v1g.Group("/gen")
+	errg := v1g.Group("/err")
+	utilsg := v1g.Group("/utils")
 	{
-		v1g.GET("/genDrill", apis.GenIdwDrill)
-		v1g.POST("/genDrill", apis.GenIdwDrill2)
-
-		//v1g.POST(/isValidPoint)
-
-		v1g.GET("/queryDrill", apis.QueryDrill)
-		v1g.POST("/queryDrill", apis.QueryDrill2)
+		geng.GET("/GenIdwDrill", apis.GenIdwDrill)
+		geng.GET("/GenM1Drill", apis.GenM1Drill)
+		geng.GET("/GenM1DrillSecond", apis.GenM1DrillSecond)
+	}
+	{
+		errg.GET("/GetStudyAreaAvgDrillPEIdw", apis.GetStudyAreaAvgDrillPEIdw)
+		errg.GET("/GetStudyAreaAvgDrillPEM1", apis.GetStudyAreaAvgDrillPEM1)
+		utilsg.GET("/GetAvgPEByLayerIDW", apis.GetAvgPEByLayerIDW)
+		utilsg.GET("/GetAvgPEByLayerM1", apis.GetAvgPEByLayerM1)
+		utilsg.GET("/DrillAroundPeCloud", apis.DrillAroundPeCloud)
+		utilsg.GET("/DrillAroundPeCloudM1", apis.DrillAroundPeCloudM1)
+	}
+	{
+		utilsg.GET("/ProbBlocks", apis.ProbBlocks)
+		utilsg.GET("/IsValidPoint", apis.IsValidPoint)
+		utilsg.GET("/queryDrill", apis.QueryDrill)
+		utilsg.GET("/GetRec", apis.GetRec)
 	}
 
-	port := strings.Join([]string{":", viper.GetString("listen.port")}, "")
+	port := strings.Join([]string{viper.GetString("listen.ip"), ":", viper.GetString("listen.port")}, "")
 	err := r.Run(port)
 	if err != nil {
 		return

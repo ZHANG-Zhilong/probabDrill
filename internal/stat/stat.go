@@ -7,6 +7,7 @@ import (
 	"probabDrill/apps/probDrill/model"
 )
 
+// ProbLayers obsolete
 func ProbLayers(drills []model.Drill) (probsVec *mat.Dense) {
 	probsVec = mat.NewDense(1, viper.GetInt("StdLen"), nil)
 	for layer := 0; layer < viper.GetInt("StdLen"); layer++ {

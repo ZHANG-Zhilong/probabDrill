@@ -19,13 +19,21 @@ func PrintFloat64s(s []float64) () {
 	}
 	fmt.Print("]\n")
 }
-func Hole(vals ...float64) () {
-	return
-}
+
 func IsInPolygon(x, y []float64, x0, y0 float64) (isIn bool) {
+	var x1, y1, x2, y2 float64
+	for k := 1; k < len(x); k++ {
+		x1 = math.Min(x[k-1], x[k])
+		x2 = math.Max(x[k-1], x[k])
+		y1 = math.Min(y[k-1], y[k])
+		y2 = math.Max(y[k-1], y[k])
+	}
+	if x0 < x1 || x0 > x2 || y0 < y1 || y0 > y2 {
+		return false
+	}
 
 	//vert[0], vert[last]
-	var i, j int = 0, len(x) - 1
+	var i, j = 0, len(x) - 1
 	if (y[i] >= y0) != (y[j] > y0) &&
 		(y0 <= y[i] && y0 <= y[j] ||
 			x0 <= (y0-y[i])*(x[j]-x[i])/(y[j]-y[i])+x[i]) {
@@ -35,7 +43,7 @@ func IsInPolygon(x, y []float64, x0, y0 float64) (isIn bool) {
 	//y0 is among y1 and y2, ray x0
 	//if k=inf -> y1==y2  y0<=y1&&y0<y2 cross
 	//if k< inf	x0<x1+k(y0-y1) cross
-	for i := 1; i < len(x); i++ {
+	for i = 1; i < len(x); i++ {
 		if (y[i] >= y0) != (y[j] > y0) &&
 			(y0 <= y[i] && y0 <= y[j] ||
 				x0 <= (y0-y[i])*(x[j]-x[i])/(y[j]-y[i])+x[i]) {
@@ -61,7 +69,7 @@ func GetGrids(px, py, l, r, t, b float64) (gridx, gridy []float64) {
 	return
 }
 
-//find max value's index and value in []float64.
+// FindMaxFloat64s find max value's index and value in []float64.
 func FindMaxFloat64s(float64s []float64) (idx int, val float64) {
 	if len(float64s) < 1 {
 		return 0, 0

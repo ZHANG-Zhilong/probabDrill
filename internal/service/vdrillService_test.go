@@ -16,12 +16,9 @@ func TestPrintFigure(t *testing.T) {
 	//for diagram  P(block) 和其他等在插值过程中用到的一些条形图
 	drillSet := constant.GetHelpDrills()
 	blocks := utils.MakeBlocks(drillSet, viper.GetFloat64("BlockResz"))
-	//pLayerBlock, _ := utils.ProbLayerBlockMat(drillSet, blocks)
 	pblocks, _ := utils.ProbBlocks(drillSet, blocks)
 	fa := mat.Formatted(pblocks, mat.Prefix(""), mat.Squeeze())
 	fmt.Printf("with all values:\na = %v\n\n", fa)
-	//fmt.Printf("with only non-zero values:\na = % v\n\n", fa)
-
 }
 
 //use P(layer_ij|block_i) first max probability to fill the block of the drill.
@@ -56,7 +53,6 @@ func TestGenVDrillsM1(t *testing.T) {
 	//draw drills by svg in simple form.
 	utils.DrawDrills(vdrills, "./TestGenVDrillsM1.svg")
 }
-
 //use P(layer_ij|block_i) second to fill the block of the drill.
 func TestGenVDrillsM1Second(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
@@ -89,7 +85,6 @@ func TestGenVDrillsM1Second(t *testing.T) {
 	//draw drills by svg in simple form.
 	utils.DrawDrills(vdrills, "./TestGenVDrillsM1.svg")
 }
-
 //generate 3d geology model by interpolation method idw.
 func TestGenVDrillsIDW(t *testing.T) {
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
@@ -119,7 +114,6 @@ func TestGenVDrillsIDW(t *testing.T) {
 	utils.Drill2WXD(vdrills)
 	utils.DrawDrills(vdrills, "./TestGenVDrillsIDW.svg")
 }
-
 func TestGenVDrillsBetween(t *testing.T) {
 	drill1 := constant.GetRealDrills()[0]
 	drill2 := constant.GetRealDrills()[1]
@@ -127,7 +121,6 @@ func TestGenVDrillsBetween(t *testing.T) {
 	vdrills := GenVDrillsBetween(drillSet, drill1, drill2, 5, GenVDrillsM1)
 	utils.DrawDrills(vdrills, "./between.svg")
 }
-
 func TestDrawDrills(t *testing.T) {
 	//只使用真实的钻孔数据绘制剖面图
 	drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
@@ -140,7 +133,6 @@ func TestDrawDrills(t *testing.T) {
 	utils.DrawDrills(drills, "./realDrill.svg")
 	constant.DisplayDrills(drills)
 }
-
 func TestRealDrillsIDW(t *testing.T) {
 	//drillNames := []string{"TZZK92", "TZJT31", "TZZK40", "TZJT28", "TZZK69", "TZZK70", "TZZK72"}
 	drillNames := []string{"BP01", "BP02"}
@@ -159,7 +151,6 @@ func TestRealDrillsIDW(t *testing.T) {
 	}
 	utils.DrawDrills(realDrills, "./fating-real.svg")
 }
-
 func TestGetPeAvgByLayer(t *testing.T) {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	//按地质分层，分别计算每一个分层的平均百分比误差
@@ -203,7 +194,6 @@ func TestGetPeCloudFigure(t *testing.T) {
 	}
 
 }
-
 func TestDrillAroundPeCloudFigure(t *testing.T) {
 	//真实钻孔周围虚拟钻孔的百分比误差
 	drillSet := constant.GetHelpDrills()

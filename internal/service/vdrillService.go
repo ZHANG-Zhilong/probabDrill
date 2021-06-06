@@ -285,7 +285,7 @@ func GenVDrillFromHelpDrillsM1(helpDrills []model.Drill, b []float64, p *mat.Den
 	helpDrills = constant.GetHelpDrills()
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	vdrill = vdrill.MakeDrill(constant.GenVDrillName(), x, y, 0)
-	nearDrills := vdrill.NearKDrills(helpDrills,viper.GetInt("RadiusIn"))
+	nearDrills := vdrill.NearKDrills(helpDrills, viper.GetInt("RadiusIn"))
 
 	//if vdrill's position has already exist a drill, return directly
 	for _, d := range nearDrills {
@@ -449,6 +449,9 @@ func GetCompareDrills(drillSet []model.Drill, ratio int, genVDrills GenVDrills) 
 	}
 	return drillSet1, estimateDrills, nil
 }
+
+// GetPeByArea
+//param ratio 每次抽取比例钻孔
 func GetPeByArea(realDrillSet []model.Drill, ratio int, genVDrills GenVDrills, round int) (x, y, pe []float64, err error) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	for idx := 0; idx < round; idx++ {

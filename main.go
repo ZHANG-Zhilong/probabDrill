@@ -7,10 +7,10 @@ import (
 	_ "probabDrill/docs"
 )
 
-// @title probabDrill generation
+// @title 基于沉积序列的三维地层概率模型研究
 // @version 1.0
-// @license.name geit license.
-// @host 171.16.1.106:4399
+// @license.name  中山大学岩土工程与信息技术研究中心
+// @host 171.16.1.107:4399
 // @BasePath /v1
 
 func main() {

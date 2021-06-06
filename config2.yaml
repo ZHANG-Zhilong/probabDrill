@@ -1,0 +1,56 @@
+version: "v1.2.5"
+GridXY: 1000              #//distance of grid
+MinThicknessInDrill: 0.2  #采用概率模型构建方法时，选取的最小地层厚度
+ScaleXY: 1.0            #对XY方向上的数据坐标的缩放
+ScaleZ: 1.0             #对X方向上的数据坐标的缩放
+RadiusIn: 5             #应用反距离插值方法时的搜索距离最近的钻孔数据数量
+SearchRadius: 3000.0    #应用反距离插值方法时的搜索距离
+IdwPow: 2.0             #应用反距离插值方法时的权重
+MinDrillDist: 1         #应用反距离插值方法时对最近钻孔距离的限制
+
+drillWidth: 20
+CanvasWidth: 1000
+CanvasHeight: 700
+CanvasMinThickness: 1
+CanvasOffsetY: 0
+
+Project: "taizhou"          #项目名称
+BlockResZ: 0.3              #概率模型构建方法中在竖直方向上的精度 < 1/3 最小地层厚度  >0.1
+OffX: -3592727.0            #钻孔整体坐标在X方向上的偏移
+OffY: -499523.0             #钻孔整体坐标在Y方向上的偏移
+OffZ: 0.0                   #钻孔整体坐标在Y方向上的偏移
+StdLen: 38                  #标准地层数量
+MinDistance: 700            #// 泊松采样参数，min distance between points
+MaxAttemptAdd: 7            #//  泊松采样参数， max attempts to add neighboring point
+RealDrillDist: 90000        # 校验参数，避免钻孔坐标的误输入
+Layer: "./assets/taizhou/layer_info.dat"              # 数据路径
+Basic: "./assets/taizhou/basic_info.dat"              # 数据路径
+Boundary: "./assets/taizhou/boundary_info.dat"        # 数据路径
+StdLayer: "./assets/taizhou/std_layer_info.dat"       # 数据路径
+
+#数据库信息，暂时无用
+#mysql:
+#  userName: "root"
+#  password: "1234"
+#  ip: "171.16.1.119"
+#  port: "3306"
+#  dbName: "test"
+
+
+#listen:
+  port: "4399"  # some browser may forbid some specific port.
+  ip: "0.0.0.0"
+
+#  //阀厅项目
+#  //const BlockResZ float64 = 0.2 //length of block < 1/3 min layer thickness  >0.1
+#  //const StdLen int = 11 //len of std layer num
+#  //const OffX float64 = -2624079
+#  //const OffY float64 = -515645
+#  //const OffZ float64 = -100 //fating
+#  //const MinDistance =  10  // 泊松采样参数，min distance between points
+#  //const MaxAttemptAdd = 15  //  泊松采样参数， max attempts to add neighboring point
+#  //const RealDrillDist = 1000
+#Layer: "./assets/fating/layer_info.dat"              # 数据路径
+#Basic: "./assets/fating/basic_info.dat"              # 数据路径
+#Boundary: "./assets/fating/boundary_info.dat"        # 数据路径
+#StdLayer: "./assets/fating/std_layer_info.dat"       # 数据路径

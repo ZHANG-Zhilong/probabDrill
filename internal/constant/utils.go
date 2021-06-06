@@ -96,8 +96,12 @@ func setClassicalIdwWeights(center model.Drill, nearDrills []model.Drill) (weigh
 	return weights
 }
 func readFile(path string) string {
+	if path == "" {
+		log.Fatalln("path is empty.")
+	}
 	file, err := os.Open(path)
 	if err != nil {
+		log.Println(path)
 		panic(err)
 	}
 	defer file.Close()
